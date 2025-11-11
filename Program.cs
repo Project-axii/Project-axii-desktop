@@ -31,7 +31,6 @@ namespace BatGeneratorServer
             var request = context.Request;
             var response = context.Response;
 
-            // Adicionar CORS
             response.AddHeader("Access-Control-Allow-Origin", "*");
             response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
             response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -81,6 +80,26 @@ namespace BatGeneratorServer
                 case "file":
                     batContent = "@echo off\necho Este é um arquivo de texto criado pelo .bat > created_file.txt\necho Arquivo created_file.txt criado com sucesso!\npause";
                     description = "Arquivo created_file.txt criado";
+                    break;
+                case "vscode":
+                    batContent = "@echo off\nstart code";
+                    description = "Visual Studio Code aberto";
+                    break;
+                case "visualstudio":
+                    batContent = "@echo off\nstart devenv";
+                    description = "Visual Studio aberto";
+                    break;
+                case "laragon":
+                    batContent = "@echo off\nstart \"\" \"C:\\laragon\\laragon.exe\"";
+                    description = "Laragon aberto";
+                    break;
+                case "packettracer":
+                    batContent = "@echo off\nstart \"\" \"C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\PacketTracer6.lnk";
+                    description = "Cisco Packet Tracer aberto";
+                    break;
+                case "ngrok":
+                    batContent = "@echo off\nstart cmd /k ngrok http 80";
+                    description = "Ngrok iniciado (porta 80)";
                     break;
                 default:
                     return "{\"success\": false, \"message\": \"Ação inválida\"}";

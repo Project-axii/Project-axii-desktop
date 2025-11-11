@@ -29,7 +29,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 700px;
+            max-width: 900px;
             overflow: hidden;
             border: 2px solid rgba(99, 102, 241, 0.3);
         }
@@ -77,8 +77,8 @@
 
         .buttons-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
             margin-bottom: 30px;
         }
 
@@ -86,9 +86,9 @@
             background: linear-gradient(135deg, var(--color1), var(--color2));
             border: none;
             border-radius: 15px;
-            padding: 30px 20px;
+            padding: 25px 15px;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -106,9 +106,9 @@
             }
 
         .btn-icon {
-            font-size: 32px;
+            font-size: 28px;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .btn-notepad {
@@ -126,9 +126,35 @@
             --color2: #db2777;
         }
 
+        .btn-vscode {
+            --color1: #0ea5e9;
+            --color2: #0284c7;
+        }
+
+        .btn-visualstudio {
+            --color1: #8b5cf6;
+            --color2: #7c3aed;
+        }
+
+        .btn-laragon {
+            --color1: #f59e0b;
+            --color2: #d97706;
+        }
+
+        .btn-packettracer {
+            --color1: #06b6d4;
+            --color2: #0891b2;
+        }
+
+        .btn-ngrok {
+            --color1: #14b8a6;
+            --color2: #0d9488;
+        }
+
         .btn-exit {
             --color1: #ef4444;
             --color2: #dc2626;
+            grid-column: span 3;
         }
 
         .log-section {
@@ -208,6 +234,16 @@
                 color: #ef4444;
                 border: 1px solid #ef4444;
             }
+
+        @media (max-width: 768px) {
+            .buttons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn-exit {
+                grid-column: span 2;
+            }
+        }
     </style>
 </head>
 <body>
@@ -286,7 +322,7 @@
                         <div className="header-content">
                             <div className="icon">&lt;/&gt;</div>
                             <div className="header-text">
-                                <h1>BAT GENERATOR</h1>  
+                                <h1>BAT GENERATOR</h1>
                             </div>
                         </div>
                     </div>
@@ -322,6 +358,51 @@
                             >
                                 <span className="btn-icon">📄</span>
                                 Criar Arquivo
+                            </button>
+
+                            <button
+                                className="btn btn-vscode"
+                                onClick={() => executeAction('vscode', 'Abrir VS Code')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">💻</span>
+                                VS Code
+                            </button>
+
+                            <button
+                                className="btn btn-visualstudio"
+                                onClick={() => executeAction('visualstudio', 'Abrir Visual Studio')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">🔷</span>
+                                Visual Studio
+                            </button>
+
+                            <button
+                                className="btn btn-laragon"
+                                onClick={() => executeAction('laragon', 'Iniciar Laragon')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">🚀</span>
+                                Laragon
+                            </button>
+
+                            <button
+                                className="btn btn-packettracer"
+                                onClick={() => executeAction('packettracer', 'Abrir Packet Tracer')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">🌐</span>
+                                Packet Tracer
+                            </button>
+
+                            <button
+                                className="btn btn-ngrok"
+                                onClick={() => executeAction('ngrok', 'Iniciar Ngrok')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">🔗</span>
+                                Ngrok
                             </button>
 
                             <button
