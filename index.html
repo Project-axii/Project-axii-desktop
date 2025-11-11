@@ -3,269 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bat Generator</title>
+    <title>BAT Generator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: #0f0f23;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 900px;
-            overflow: hidden;
-            border: 2px solid rgba(99, 102, 241, 0.3);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            padding: 30px;
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .icon {
-            width: 70px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .header-text h1 {
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .header-text p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-        }
-
-        .content {
-            padding: 40px 30px;
-        }
-
-        .buttons-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--color1), var(--color2));
-            border: none;
-            border-radius: 15px;
-            padding: 25px 15px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-            .btn:hover:not(:disabled) {
-                transform: translateY(-3px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
             }
 
-            .btn:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
             }
 
-        .btn-icon {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .btn-notepad {
-            --color1: #6366f1;
-            --color2: #4f46e5;
-        }
-
-        .btn-datetime {
-            --color1: #10b981;
-            --color2: #059669;
-        }
-
-        .btn-file {
-            --color1: #ec4899;
-            --color2: #db2777;
-        }
-
-        .btn-vscode {
-            --color1: #0ea5e9;
-            --color2: #0284c7;
-        }
-
-        .btn-visualstudio {
-            --color1: #8b5cf6;
-            --color2: #7c3aed;
-        }
-
-        .btn-laragon {
-            --color1: #f59e0b;
-            --color2: #d97706;
-        }
-
-        .btn-packettracer {
-            --color1: #06b6d4;
-            --color2: #0891b2;
-        }
-
-        .btn-ngrok {
-            --color1: #14b8a6;
-            --color2: #0d9488;
-        }
-
-        .btn-exit {
-            --color1: #ef4444;
-            --color2: #dc2626;
-            grid-column: span 3;
-        }
-
-        .log-section {
-            background: #19192d;
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-
-        .log-header {
-            color: #b4b4c8;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .log-content {
-            background: #14142a;
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .log-entry {
-            margin-bottom: 8px;
-            animation: slideIn 0.3s ease;
+            50% {
+                opacity: 0.7;
+            }
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateX(-10px);
+                transform: translateY(10px);
             }
 
             to {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateY(0);
             }
         }
 
-        .log-time {
-            color: #64b5f6;
+        .spinner {
+            animation: spin 1s linear infinite;
         }
 
-        .log-message {
-            color: #b4ffb4;
+        .pulse-anim {
+            animation: pulse 2s infinite;
         }
 
-        .log-error {
-            color: #ff6b6b;
+        .slide-in {
+            animation: slideIn 0.3s ease;
         }
 
-        .log-success {
-            color: #51cf66;
+        .log-scroll::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .status {
-            text-align: center;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 600;
+        .log-scroll::-webkit-scrollbar-track {
+            background: #1e293b;
         }
 
-            .status.connected {
-                background: rgba(16, 185, 129, 0.2);
-                color: #10b981;
-                border: 1px solid #10b981;
+        .log-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+            .log-scroll::-webkit-scrollbar-thumb:hover {
+                background: #64748b;
             }
-
-            .status.disconnected {
-                background: rgba(239, 68, 68, 0.2);
-                color: #ef4444;
-                border: 1px solid #ef4444;
-            }
-
-        @media (max-width: 768px) {
-            .buttons-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .btn-exit {
-                grid-column: span 2;
-            }
-        }
     </style>
 </head>
-<body>
+<body class="bg-gradient-to-br from-blue-900 via-slate-900 to-purple-900 min-h-screen flex items-center justify-center p-4">
+
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
+
+        const apps = [
+            { id: 'notepad', name: 'Bloco de Notas', icon: '📝', color: 'from-blue-600 to-blue-700', desc: 'Abrir Bloco de Notas' },
+            { id: 'datetime', name: 'Data e Hora', icon: '🕐', color: 'from-emerald-600 to-emerald-700', desc: 'Exibir Data e Hora' },
+            { id: 'file', name: 'Criar Arquivo', icon: '📄', color: 'from-pink-600 to-pink-700', desc: 'Criar Arquivo' },
+            { id: 'vscode', name: 'VS Code', icon: '💻', color: 'from-sky-600 to-sky-700', desc: 'Abrir VS Code' },
+            { id: 'visualstudio', name: 'Visual Studio', icon: '🔷', color: 'from-violet-600 to-violet-700', desc: 'Abrir Visual Studio' },
+            { id: 'laragon', name: 'Laragon', icon: '🚀', color: 'from-amber-600 to-amber-700', desc: 'Iniciar Laragon' },
+            { id: 'packettracer', name: 'Packet Tracer', icon: '🌐', color: 'from-cyan-600 to-cyan-700', desc: 'Abrir Packet Tracer' },
+            { id: 'ngrok', name: 'Ngrok', icon: '🔗', color: 'from-teal-600 to-teal-700', desc: 'Iniciar Ngrok' },
+        ];
 
         function App() {
             const [logs, setLogs] = useState([]);
             const [loading, setLoading] = useState(false);
             const [connected, setConnected] = useState(false);
+            const logEndRef = useRef(null);
 
             useEffect(() => {
                 checkConnection();
-                addLog('✨ Sistema iniciado com sucesso!', 'success');
-                addLog('👆 Selecione uma opção acima para começar.', 'message');
+                addLog('Sistema iniciado com sucesso!', 'success');
+                addLog('Selecione uma opção para começar.', 'info');
             }, []);
+
+            useEffect(() => {
+                logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [logs]);
 
             const checkConnection = async () => {
                 try {
-                    const response = await fetch('http://localhost:5000/', { method: 'GET' });
+                    await fetch('http://localhost:5000/', { method: 'GET' });
                     setConnected(true);
                 } catch {
                     setConnected(false);
@@ -280,19 +122,19 @@
                 });
             };
 
-            const addLog = (message, type = 'message') => {
+            const addLog = (message, type = 'info') => {
                 setLogs(prev => [...prev, { time: getTime(), message, type }]);
             };
 
             const executeAction = async (action, description) => {
                 if (!connected) {
-                    addLog('❌ Servidor não está rodando!', 'error');
-                    addLog('💡 Execute: dotnet run', 'error');
+                    addLog('Servidor C# não está rodando!', 'error');
+                    addLog('Execute: dotnet run', 'warning');
                     return;
                 }
 
                 setLoading(true);
-                addLog(`▶️ Iniciando: ${description}`, 'message');
+                addLog(`Iniciando: ${description}`, 'info');
 
                 try {
                     const response = await fetch('http://localhost:5000/execute', {
@@ -304,126 +146,131 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        addLog(`✅ ${result.message}`, 'success');
-                        addLog('✨ Execução concluída!', 'success');
+                        addLog(result.message, 'success');
+                        addLog('Execução concluída!', 'success');
                     } else {
-                        addLog(`❌ ${result.message}`, 'error');
+                        addLog(result.message, 'error');
                     }
                 } catch (error) {
-                    addLog(`❌ Erro: ${error.message}`, 'error');
+                    addLog(`Erro: ${error.message}`, 'error');
                 }
 
                 setLoading(false);
             };
 
+            const getLogIcon = (type) => {
+                switch(type) {
+                    case 'success': return '✓';
+                    case 'error': return '✗';
+                    case 'warning': return '⚠';
+                    default: return 'ℹ';
+                }
+            };
+
+            const getLogColor = (type) => {
+                switch(type) {
+                    case 'success': return 'text-green-400';
+                    case 'error': return 'text-red-400';
+                    case 'warning': return 'text-yellow-400';
+                    default: return 'text-blue-400';
+                }
+            };
+
             return (
-                <div className="container">
-                    <div className="header">
-                        <div className="header-content">
-                            <div className="icon">&lt;/&gt;</div>
-                            <div className="header-text">
-                                <h1>BAT GENERATOR</h1>
+                <div className="w-full max-w-6xl">
+                    {/* Header */}
+                    <div className="bg-slate-800 rounded-2xl shadow-2xl overflow-hidden mb-6">
+                        <div className="p-8 text-center bg-gradient-to-r from-blue-600 to-purple-600">
+                            <div className="w-20 h-20 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
+                                <span className="text-4xl pulse-anim">&lt;/&gt;</span>
+                            </div>
+                            <h1 className="text-4xl font-bold mb-2 text-white">
+                                BAT GENERATOR
+                            </h1>
+                        </div>
+
+                        {/* Status */}
+                        <div className="px-8 py-4">
+                            <div className={`p-4 rounded-lg ${connected ? 'bg-green-900/30 border-l-4 border-green-500' : 'bg-red-900/30 border-l-4 border-red-500'}`}>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} pulse-anim`}></div>
+                                    <div className="flex-1">
+                                        <p className={`font-semibold text-sm ${connected ? 'text-green-400' : 'text-red-400'}`}>
+                                            {connected ? 'Servidor Conectado' : 'Servidor Desconectado'}
+                                        </p>
+                                        <p className="text-gray-300 text-xs">
+                                            {connected ? 'Pronto para executar comandos' : 'Execute: dotnet run'}
+                                        </p>
+                                    </div>
+                                    {loading && (
+                                        <div className="w-6 h-6 border-2 border-slate-600 border-t-blue-500 rounded-full spinner"></div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="content">
-                        <div className={`status ${connected ? 'connected' : 'disconnected'}`}>
-                            {connected ? '🟢 Servidor Conectado' : '🔴 Servidor C# Desconectado'}
+                    {/* Grid de Aplicações */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        {apps.map((app) => (
+                            <button
+                                key={app.id}
+                                onClick={() => executeAction(app.id, app.desc)}
+                                disabled={loading || !connected}
+                                className={`bg-slate-800 rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${loading || !connected ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
+                                <div className={`p-6 bg-gradient-to-br ${app.color}`}>
+                                    <div className="text-5xl mb-3 text-center">{app.icon}</div>
+                                    <h3 className="text-white font-bold text-center text-sm">{app.name}</h3>
+                                </div>
+                                <div className="p-3 bg-slate-700/50">
+                                    <p className="text-gray-300 text-xs text-center">{app.desc}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Log Section */}
+                    <div className="bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                </svg>
+                                <h2 className="text-white font-bold text-lg">Log de Execução</h2>
+                            </div>
+
+                            <div className="bg-slate-900 rounded-lg p-4 h-64 overflow-y-auto log-scroll font-mono text-sm">
+                                {logs.length === 0 ? (
+                                    <p className="text-gray-500 text-center py-8">Nenhum log ainda...</p>
+                                ) : (
+                                    logs.map((log, index) => (
+                                        <div key={index} className="mb-2 slide-in flex items-start gap-2">
+                                            <span className="text-gray-500 text-xs flex-shrink-0">[{log.time}]</span>
+                                            <span className={`${getLogColor(log.type)} flex-shrink-0`}>{getLogIcon(log.type)}</span>
+                                            <span className="text-gray-300 flex-1">{log.message}</span>
+                                        </div>
+                                    ))
+                                )}
+                                <div ref={logEndRef} />
+                            </div>
                         </div>
 
-                        <div className="buttons-grid">
-                            <button
-                                className="btn btn-notepad"
-                                onClick={() => executeAction('notepad', 'Abrir Bloco de Notas')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">📝</span>
-                                Bloco de Notas
-                            </button>
-
-                            <button
-                                className="btn btn-datetime"
-                                onClick={() => executeAction('datetime', 'Exibir Data e Hora')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">🕐</span>
-                                Data e Hora
-                            </button>
-
-                            <button
-                                className="btn btn-file"
-                                onClick={() => executeAction('file', 'Criar Arquivo')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">📄</span>
-                                Criar Arquivo
-                            </button>
-
-                            <button
-                                className="btn btn-vscode"
-                                onClick={() => executeAction('vscode', 'Abrir VS Code')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">💻</span>
-                                VS Code
-                            </button>
-
-                            <button
-                                className="btn btn-visualstudio"
-                                onClick={() => executeAction('visualstudio', 'Abrir Visual Studio')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">🔷</span>
-                                Visual Studio
-                            </button>
-
-                            <button
-                                className="btn btn-laragon"
-                                onClick={() => executeAction('laragon', 'Iniciar Laragon')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">🚀</span>
-                                Laragon
-                            </button>
-
-                            <button
-                                className="btn btn-packettracer"
-                                onClick={() => executeAction('packettracer', 'Abrir Packet Tracer')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">🌐</span>
-                                Packet Tracer
-                            </button>
-
-                            <button
-                                className="btn btn-ngrok"
-                                onClick={() => executeAction('ngrok', 'Iniciar Ngrok')}
-                                disabled={loading || !connected}
-                            >
-                                <span className="btn-icon">🔗</span>
-                                Ngrok
-                            </button>
-
-                            <button
-                                className="btn btn-exit"
-                                onClick={() => window.close()}
-                                disabled={loading}
-                            >
-                                <span className="btn-icon">❌</span>
-                                Sair
-                            </button>
-                        </div>
-
-                        <div className="log-section">
-                            <div className="log-header">📊 LOG DE EXECUÇÃO</div>
-                            <div className="log-content">
-                                {logs.map((log, index) => (
-                                    <div key={index} className="log-entry">
-                                        <span className="log-time">[{log.time}] </span>
-                                        <span className={`log-${log.type}`}>{log.message}</span>
-                                    </div>
-                                ))}
+                        {/* Footer Actions */}
+                        <div className="p-6 bg-slate-900/50 border-t border-slate-700">
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setLogs([])}
+                                    className="flex-1 py-2 px-4 rounded-lg font-medium text-white bg-slate-700 hover:bg-slate-600 transition-colors"
+                                >
+                                    Limpar Logs
+                                </button>
+                                <button
+                                    onClick={() => window.close()}
+                                    className="flex-1 py-2 px-4 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                                >
+                                    Sair
+                                </button>
                             </div>
                         </div>
                     </div>
