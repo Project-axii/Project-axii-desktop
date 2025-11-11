@@ -1,61 +1,115 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-namespace BatGenerator
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BatGeneratorServer
 {
     class Program
     {
-        static void Main(string[] args)
+        static HttpListener listener;
+
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Escolha uma opção para gerar e executar um arquivo .bat:");
-            Console.WriteLine("1. Abrir o Bloco de Notas");
-            Console.WriteLine("2. Exibir data e hora atuais");
-            Console.WriteLine("3. Criar um arquivo de texto");
-            Console.WriteLine("4. Sair");
-            string choice = Console.ReadLine();
+            listener = new HttpListener();
+            listener.Prefixes.Add("http://localhost:5000/");
+            listener.Start();
+            Console.WriteLine("🚀 Servidor C# rodando em http://localhost:5000");
+            Console.WriteLine("📂 Abra o arquivo 'index.html' no navegador");
+
+            while (true)
+            {
+                var context = await listener.GetContextAsync();
+                _ = ProcessRequest(context);
+            }
+        }
+
+        static async Task ProcessRequest(HttpListenerContext context)
+        {
+            var request = context.Request;
+            var response = context.Response;
+
+            // Adicionar CORS
+            response.AddHeader("Access-Control-Allow-Origin", "*");
+            response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+            response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+
+            if (request.HttpMethod == "OPTIONS")
+            {
+                response.StatusCode = 200;
+                response.Close();
+                return;
+            }
+
+            if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/execute")
+            {
+                using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+                {
+                    string body = await reader.ReadToEndAsync();
+                    string action = body.Replace("\"", "").Trim();
+
+                    string result = ExecuteBatScript(action);
+
+                    byte[] buffer = Encoding.UTF8.GetBytes(result);
+                    response.ContentLength64 = buffer.Length;
+                    response.ContentType = "application/json";
+                    await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                }
+            }
+
+            response.Close();
+        }
+
+        static string ExecuteBatScript(string action)
+        {
             string batFileName = "temp_script.bat";
             string batContent = "";
-            switch (choice)
+            string description = "";
+
+            switch (action)
             {
-                case "1":
+                case "notepad":
                     batContent = "@echo off\nstart notepad.exe";
+                    description = "Bloco de Notas aberto";
                     break;
-                case "2":
+                case "datetime":
                     batContent = "@echo off\necho Data e Hora Atuais: %date% %time%\npause";
+                    description = "Janela de Data/Hora exibida";
                     break;
-                case "3":
+                case "file":
                     batContent = "@echo off\necho Este é um arquivo de texto criado pelo .bat > created_file.txt\necho Arquivo created_file.txt criado com sucesso!\npause";
+                    description = "Arquivo created_file.txt criado";
                     break;
-                case "4":
-                    Console.WriteLine("Saindo...");
-                    return;
                 default:
-                    Console.WriteLine("Opção inválida.");
-                    return;
+                    return "{\"success\": false, \"message\": \"Ação inválida\"}";
             }
+
             try
             {
-                File.WriteAllText(batFileName, batContent.Replace("\n", Environment.NewLine));
-                Console.WriteLine($"Arquivo \'{batFileName}\' criado com sucesso.");
+                File.WriteAllText(batFileName, batContent.Replace("\\n", Environment.NewLine));
+
                 ProcessStartInfo psi = new ProcessStartInfo();
                 psi.FileName = batFileName;
                 psi.UseShellExecute = true;
-                Console.WriteLine($"Executando \'{batFileName}\'...");
+
                 using (Process process = Process.Start(psi))
                 {
-                    process.WaitForExit(); 
+                    process.WaitForExit();
                 }
-                Console.WriteLine($"Execução de \'{batFileName}\' concluída.");
-                File.Delete(batFileName);
-                Console.WriteLine($"Arquivo \'{batFileName}\' deletado com sucesso.");
+
+                if (File.Exists(batFileName))
+                {
+                    File.Delete(batFileName);
+                }
+
+                return $"{{\"success\": true, \"message\": \"{description}\"}}";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ocorreu um erro: {ex.Message}");
+                return $"{{\"success\": false, \"message\": \"Erro: {ex.Message}\"}}";
             }
-            Console.WriteLine("Pressione qualquer tecla para finalizar.");
-            Console.ReadKey();
         }
     }
 }

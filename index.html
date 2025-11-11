@@ -1,0 +1,356 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bat Generator</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #0f0f23;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 700px;
+            overflow: hidden;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 30px;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .header-text h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header-text p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--color1), var(--color2));
+            border: none;
+            border-radius: 15px;
+            padding: 30px 20px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+            .btn:hover:not(:disabled) {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        .btn-icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .btn-notepad {
+            --color1: #6366f1;
+            --color2: #4f46e5;
+        }
+
+        .btn-datetime {
+            --color1: #10b981;
+            --color2: #059669;
+        }
+
+        .btn-file {
+            --color1: #ec4899;
+            --color2: #db2777;
+        }
+
+        .btn-exit {
+            --color1: #ef4444;
+            --color2: #dc2626;
+        }
+
+        .log-section {
+            background: #19192d;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .log-header {
+            color: #b4b4c8;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .log-content {
+            background: #14142a;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-time {
+            color: #64b5f6;
+        }
+
+        .log-message {
+            color: #b4ffb4;
+        }
+
+        .log-error {
+            color: #ff6b6b;
+        }
+
+        .log-success {
+            color: #51cf66;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+            .status.connected {
+                background: rgba(16, 185, 129, 0.2);
+                color: #10b981;
+                border: 1px solid #10b981;
+            }
+
+            .status.disconnected {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+                border: 1px solid #ef4444;
+            }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [logs, setLogs] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [connected, setConnected] = useState(false);
+
+            useEffect(() => {
+                checkConnection();
+                addLog('✨ Sistema iniciado com sucesso!', 'success');
+                addLog('👆 Selecione uma opção acima para começar.', 'message');
+            }, []);
+
+            const checkConnection = async () => {
+                try {
+                    const response = await fetch('http://localhost:5000/', { method: 'GET' });
+                    setConnected(true);
+                } catch {
+                    setConnected(false);
+                }
+            };
+
+            const getTime = () => {
+                return new Date().toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            };
+
+            const addLog = (message, type = 'message') => {
+                setLogs(prev => [...prev, { time: getTime(), message, type }]);
+            };
+
+            const executeAction = async (action, description) => {
+                if (!connected) {
+                    addLog('❌ Servidor não está rodando!', 'error');
+                    addLog('💡 Execute: dotnet run', 'error');
+                    return;
+                }
+
+                setLoading(true);
+                addLog(`▶️ Iniciando: ${description}`, 'message');
+
+                try {
+                    const response = await fetch('http://localhost:5000/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(action)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        addLog(`✅ ${result.message}`, 'success');
+                        addLog('✨ Execução concluída!', 'success');
+                    } else {
+                        addLog(`❌ ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    addLog(`❌ Erro: ${error.message}`, 'error');
+                }
+
+                setLoading(false);
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div className="header-content">
+                            <div className="icon">&lt;/&gt;</div>
+                            <div className="header-text">
+                                <h1>BAT GENERATOR</h1>  
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="content">
+                        <div className={`status ${connected ? 'connected' : 'disconnected'}`}>
+                            {connected ? '🟢 Servidor Conectado' : '🔴 Servidor C# Desconectado'}
+                        </div>
+
+                        <div className="buttons-grid">
+                            <button
+                                className="btn btn-notepad"
+                                onClick={() => executeAction('notepad', 'Abrir Bloco de Notas')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">📝</span>
+                                Bloco de Notas
+                            </button>
+
+                            <button
+                                className="btn btn-datetime"
+                                onClick={() => executeAction('datetime', 'Exibir Data e Hora')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">🕐</span>
+                                Data e Hora
+                            </button>
+
+                            <button
+                                className="btn btn-file"
+                                onClick={() => executeAction('file', 'Criar Arquivo')}
+                                disabled={loading || !connected}
+                            >
+                                <span className="btn-icon">📄</span>
+                                Criar Arquivo
+                            </button>
+
+                            <button
+                                className="btn btn-exit"
+                                onClick={() => window.close()}
+                                disabled={loading}
+                            >
+                                <span className="btn-icon">❌</span>
+                                Sair
+                            </button>
+                        </div>
+
+                        <div className="log-section">
+                            <div className="log-header">📊 LOG DE EXECUÇÃO</div>
+                            <div className="log-content">
+                                {logs.map((log, index) => (
+                                    <div key={index} className="log-entry">
+                                        <span className="log-time">[{log.time}] </span>
+                                        <span className={`log-${log.type}`}>{log.message}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
