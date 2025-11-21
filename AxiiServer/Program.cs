@@ -99,20 +99,9 @@ app.MapGet("/status", () =>
 });
 
 Console.Clear();
-Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-Console.WriteLine("║                                                            ║");
-Console.WriteLine("║        🎮  AXII DESKTOP - SERVIDOR MULTI-PC  🎮           ║");
-Console.WriteLine("║                                                            ║");
-Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-Console.WriteLine($"║   🌐 Acesse: http://{GetLocalIPAddress()}:5000                        ║");
-Console.WriteLine("║   📱 Interface: http://localhost:5000                      ║");
-Console.WriteLine("║                                                            ║");
-Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-Console.WriteLine("║   📝 IMPORTANTE:                                           ║");
-Console.WriteLine("║   1. Coloque o arquivo 'index.html' na mesma pasta        ║");
-Console.WriteLine("║   2. Coloque a pasta 'img' com o logo na mesma pasta      ║");
-Console.WriteLine("║   3. Execute os clientes em cada PC                       ║");
-Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+Console.WriteLine("AXII DESKTOP - SERVIDOR MULTI-PC");
+Console.WriteLine($"Acesse: http://{GetLocalIPAddress()}:5000");
+Console.WriteLine("Interface: http://localhost:5000║");
 Console.WriteLine();
 
 app.Run("http://0.0.0.0:5000");

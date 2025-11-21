@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\AxiiClient"
   ],
-  "SelectedNode": "\\Program.cs",
+  "SelectedNode": "\\AxiiClient\\Program.cs",
   "PreviewInSolutionExplorer": false
 }
