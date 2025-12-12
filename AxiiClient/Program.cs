@@ -13,115 +13,167 @@ namespace AxiiDesktopClient
         static HubConnection connection;
         static string computerName = Environment.MachineName;
         static string userName = Environment.UserName;
-        static string configUrl = "https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema.json";
-        static string logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "axii_client.log");
 
         static async Task Main(string[] args)
         {
-            await StartClient();
-        }
+            Console.Title = $"Axii Desktop Client - {computerName}";
 
-        static async Task StartClient()
-        {
-            LogMessage("AXII DESKTOP CLIENT INICIADO");
-            LogMessage($"Computador: {computerName}");
-            LogMessage($"Usuário: {userName}");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("");
+            Console.WriteLine("         AXII DESKTOP - CLIENTE EXECUTOR ");
+            Console.WriteLine("");
+            Console.WriteLine($"Computador: {computerName.PadRight(43)} ");
+            Console.WriteLine($"Usuário: {userName.PadRight(46)} ");
+            Console.WriteLine("");
+            Console.ResetColor();
 
-            while (true)
+            Console.Write("Digite a URL do JSON de configuração (ou Enter para usar padrão): ");
+            string jsonUrl = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(jsonUrl))
             {
-                try
-                {
-                    LogMessage("Buscando configuração do servidor...");
-
-                    string serverIp = await GetServerUrlFromJson(configUrl);
-                    LogMessage($"Servidor encontrado: {serverIp}");
-
-                    string serverUrl = $"{serverIp.TrimEnd('/')}/commandHub?computer={Uri.EscapeDataString(computerName)}";
-
-                    LogMessage("Configurando conexão...");
-
-                    connection = new HubConnectionBuilder()
-                        .WithUrl(serverUrl, options =>
-                        {
-                            options.Headers.Add("ngrok-skip-browser-warning", "true");
-                        })
-                        .WithAutomaticReconnect(new[]
-                        {
-                            TimeSpan.Zero,
-                            TimeSpan.FromSeconds(2),
-                            TimeSpan.FromSeconds(5),
-                            TimeSpan.FromSeconds(10),
-                            TimeSpan.FromSeconds(30)
-                        })
-                        .Build();
-
-                    SetupConnectionHandlers();
-
-                    await connection.StartAsync();
-
-                    LogMessage("CONECTADO COM SUCESSO!");
-                    LogMessage($"Servidor: {serverUrl}");
-                    LogMessage("Status: Aguardando comandos...");
-
-                    await Task.Delay(-1);
-                }
-                catch (Exception ex)
-                {
-                    LogMessage($"ERRO: {ex.Message}");
-                    LogMessage("Tentando reconectar em 30 segundos...");
-
-                    await Task.Delay(30000);
-                }
+                jsonUrl = "https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema.json";
             }
-        }
 
-        static void SetupConnectionHandlers()
-        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Buscando configuração do servidor...");
+            Console.ResetColor();
+
+            string serverIp;
+            try
+            {
+                serverIp = await GetServerUrlFromJson(jsonUrl);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Servidor encontrado: {serverIp}");
+                Console.ResetColor();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Erro ao buscar configuração: {ex.Message}");
+                Console.ResetColor();
+                Console.WriteLine("Pressione qualquer tecla para sair...");
+                Console.ReadKey();
+                return;
+            }
+
+            string serverUrl = $"{serverIp.TrimEnd('/')}/commandHub?computer={Uri.EscapeDataString(computerName)}";
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Configurando conexão...");
+            Console.ResetColor();
+
+            connection = new HubConnectionBuilder()
+                .WithUrl(serverUrl, options =>
+                {
+                    options.Headers.Add("ngrok-skip-browser-warning", "true");
+                })
+                .WithAutomaticReconnect(new[]
+                {
+                    TimeSpan.Zero,
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10)
+                })
+                .Build();
+
             connection.Reconnecting += error =>
             {
-                LogMessage("Reconectando ao servidor...");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] Reconectando ao servidor...");
+                Console.ResetColor();
                 return Task.CompletedTask;
             };
 
             connection.Reconnected += connectionId =>
             {
-                LogMessage("Reconectado com sucesso!");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Reconectado com sucesso!");
+                Console.ResetColor();
                 return Task.CompletedTask;
             };
 
             connection.Closed += async error =>
             {
-                LogMessage("Conexão perdida! Tentando reconectar...");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] Conexão perdida!");
+                Console.ResetColor();
 
                 await Task.Delay(5000);
 
                 try
                 {
-                    LogMessage("Tentando reconectar...");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Tentando reconectar...");
+                    Console.ResetColor();
                     await connection.StartAsync();
                 }
                 catch (Exception ex)
                 {
-                    LogMessage($"Falha na reconexão: {ex.Message}");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Falha na reconexão: {ex.Message}");
+                    Console.ResetColor();
                 }
             };
 
             connection.On<string>("ExecuteCommand", async (action) =>
             {
-                LogMessage($"▶ Comando recebido: {action}");
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Comando recebido: {action}");
+                Console.ResetColor();
 
                 string result = await Task.Run(() => ExecuteBatScript(action));
-                LogMessage(result);
+
+                if (result.Contains("❌"))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"{result}");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"{result}");
+                }
+                Console.ResetColor();
             });
+
+            try
+            {
+                await connection.StartAsync();
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("CONECTADO COM SUCESSO!");
+                Console.WriteLine($"Servidor: {serverUrl.PadRight(46)} ");
+                Console.WriteLine("Status: Aguardando comandos...");
+                Console.ResetColor();
+
+                Console.WriteLine("Pressione CTRL+C para desconectar e sair.");
+
+                await Task.Delay(-1);
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("ERRO DE CONEXÃO");
+                Console.WriteLine($"{ex.Message.PadRight(58)} ");
+                Console.WriteLine("Verifique se:");
+                Console.WriteLine("1. O servidor está rodando");
+                Console.WriteLine("2. A URL do JSON está correta");
+                Console.WriteLine("3. O firewall não está bloqueando");
+                Console.ResetColor();
+
+                Console.WriteLine("Pressione qualquer tecla para sair...");
+                Console.ReadKey();
+            }
         }
 
         static async Task<string> GetServerUrlFromJson(string jsonUrl)
         {
             using (HttpClient client = new HttpClient())
             {
-                client.Timeout = TimeSpan.FromSeconds(15);
+                client.Timeout = TimeSpan.FromSeconds(10);
+
                 client.DefaultRequestHeaders.Add("ngrok-skip-browser-warning", "true");
-                client.DefaultRequestHeaders.Add("User-Agent", "AxiiDesktopClient/1.0");
 
                 HttpResponseMessage response = await client.GetAsync(jsonUrl);
                 response.EnsureSuccessStatusCode();
@@ -220,8 +272,8 @@ namespace AxiiDesktopClient
                 {
                     FileName = batFileName,
                     UseShellExecute = true,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
+                    CreateNoWindow = false,
+                    WindowStyle = ProcessWindowStyle.Normal
                 };
 
                 using (Process process = Process.Start(psi))
@@ -251,16 +303,6 @@ namespace AxiiDesktopClient
             {
                 return $"Erro ao executar: {ex.Message}";
             }
-        }
-
-        static void LogMessage(string message)
-        {
-            try
-            {
-                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n";
-                File.AppendAllText(logFile, logEntry);
-            }
-            catch { }
         }
     }
 }
