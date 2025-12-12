@@ -24,7 +24,6 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Servir arquivos estáticos (HTML, CSS, JS, imagens)
 var currentDirectory = Directory.GetCurrentDirectory();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -37,16 +36,13 @@ app.UseRouting();
 
 app.MapHub<CommandHub>("/commandHub");
 
-// Endpoint principal - servir o HTML
 app.MapGet("/", () => Results.Content(File.ReadAllText("index.html"), "text/html"));
 
-// Endpoint para broadcast de comandos para todos os PCs
 app.MapPost("/broadcast", async (HttpContext context, IHubContext<CommandHub> hubContext) =>
 {
     using var reader = new StreamReader(context.Request.Body);
     string body = await reader.ReadToEndAsync();
 
-    // Remover aspas do JSON
     string action = body.Replace("\"", "").Trim();
 
     int clientCount = CommandHub.ConnectedClients.Count;
@@ -61,7 +57,6 @@ app.MapPost("/broadcast", async (HttpContext context, IHubContext<CommandHub> hu
         });
     }
 
-    // Enviar comando para TODOS os clientes
     await hubContext.Clients.All.SendAsync("ExecuteCommand", action);
 
     return Results.Ok(new
@@ -72,7 +67,6 @@ app.MapPost("/broadcast", async (HttpContext context, IHubContext<CommandHub> hu
     });
 });
 
-// Endpoint para listar clientes conectados
 app.MapGet("/clients", () =>
 {
     return Results.Ok(new
@@ -87,7 +81,6 @@ app.MapGet("/clients", () =>
     });
 });
 
-// Endpoint de status do servidor
 app.MapGet("/status", () =>
 {
     return Results.Ok(new
@@ -99,7 +92,7 @@ app.MapGet("/status", () =>
 });
 
 Console.Clear();
-Console.WriteLine("AXII DESKTOP - SERVIDOR MULTI-PC");
+Console.WriteLine("AXII DESKTOP");
 Console.WriteLine($"Acesse: http://{GetLocalIPAddress()}:5000");
 Console.WriteLine("Interface: http://localhost:5000║");
 Console.WriteLine();
@@ -129,7 +122,7 @@ public class CommandHub : Hub
         ConnectedClients[Context.ConnectionId] = computerName;
 
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"✅ [{DateTime.Now:HH:mm:ss}] Cliente conectado: {computerName} (ID: {Context.ConnectionId})");
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cliente conectado: {computerName} (ID: {Context.ConnectionId})");
         Console.WriteLine($"   Total de clientes: {ConnectedClients.Count}");
         Console.ResetColor();
 
@@ -143,7 +136,7 @@ public class CommandHub : Hub
             ConnectedClients.Remove(Context.ConnectionId);
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"❌ [{DateTime.Now:HH:mm:ss}] Cliente desconectado: {computerName}");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cliente desconectado: {computerName}");
             Console.WriteLine($"   Total de clientes: {ConnectedClients.Count}");
             Console.ResetColor();
         }
