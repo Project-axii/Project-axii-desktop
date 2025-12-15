@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -23,23 +24,17 @@ namespace AxiiDesktopClient
 
     public class MainForm : Form
     {
-        private HubConnection connection;
+        private HubConnection? connection;
         private string computerName = Environment.MachineName;
         private string userName = Environment.UserName;
         private string defaultConfigPath = "axii_default_config.txt";
 
-        private Button btnGitHub;
-        private Button btnDefault;
-        private Button btnCustom;
-        private Button btnSetDefault;
-        private Button btnExit;
-        private Label lblTitle;
-        private Label lblComputer;
-        private Label lblUser;
-        private Label lblStatus;
-        private TextBox txtLog;
-        private Panel panelTop;
-        private Panel panelButtons;
+        private Panel headerPanel = null!;
+        private Label lblTitle = null!;
+        private Label lblSubtitle = null!;
+        private Panel infoPanel = null!;
+        private Label lblStatus = null!;
+        private Panel contentPanel = null!;
 
         public MainForm()
         {
@@ -48,158 +43,393 @@ namespace AxiiDesktopClient
 
         private void InitializeComponents()
         {
-            this.Text = $"Axii Desktop Client - {computerName}";
-            this.Size = new Size(600, 550);
+            this.Text = "Axii Desktop Client";
+            this.Size = new Size(1200, 800);
+            this.MinimumSize = new Size(800, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.BackColor = Color.FromArgb(30, 30, 30);
+            this.BackColor = Color.FromArgb(10, 25, 47);
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.Resize += MainForm_Resize;
 
-            // Panel Superior
-            panelTop = new Panel
+            // Header
+            headerPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 120,
-                BackColor = Color.FromArgb(20, 20, 20)
+                Height = 80,
+                BackColor = Color.FromArgb(15, 30, 60)
+            };
+
+            // Logo e Título
+            Label lblLogo = new Label
+            {
+                Text = "⬛",
+                Location = new Point(30, 20),
+                Size = new Size(40, 40),
+                Font = new Font("Segoe UI", 24),
+                ForeColor = Color.FromArgb(100, 200, 255),
+                BackColor = Color.Transparent
             };
 
             lblTitle = new Label
             {
-                Text = "AXII DESKTOP - CLIENTE EXECUTOR",
-                Location = new Point(20, 15),
-                Size = new Size(560, 30),
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.Cyan,
-                TextAlign = ContentAlignment.MiddleCenter
+                Text = "AXII DESKTOP",
+                Location = new Point(80, 25),
+                Size = new Size(300, 35),
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                ForeColor = Color.FromArgb(100, 200, 255),
+                BackColor = Color.Transparent
             };
 
-            lblComputer = new Label
+            lblSubtitle = new Label
             {
-                Text = $"Computador: {computerName}",
-                Location = new Point(20, 55),
-                Size = new Size(560, 25),
+                Text = "Cliente Executor",
+                Location = new Point(1050, 30),
+                Size = new Size(120, 25),
                 Font = new Font("Segoe UI", 10),
-                ForeColor = Color.White
+                ForeColor = Color.FromArgb(150, 170, 200),
+                BackColor = Color.Transparent
             };
 
-            lblUser = new Label
+            headerPanel.Controls.AddRange(new Control[] { lblLogo, lblTitle, lblSubtitle });
+
+            // Painel de Informações
+            infoPanel = new Panel
             {
-                Text = $"Usuário: {userName}",
-                Location = new Point(20, 80),
-                Size = new Size(560, 25),
+                Location = new Point(40, 120),
+                Size = new Size(this.ClientSize.Width - 80, 100),
+                BackColor = Color.FromArgb(20, 40, 70),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+            infoPanel.Paint += (s, e) => DrawRoundedRectangle(e.Graphics, infoPanel.ClientRectangle, 10, Color.FromArgb(20, 40, 70));
+
+            Label lblComputerIcon = new Label
+            {
+                Text = "💻",
+                Location = new Point(30, 30),
+                Size = new Size(40, 40),
+                Font = new Font("Segoe UI", 20),
+                BackColor = Color.Transparent
+            };
+
+            Label lblComputerLabel = new Label
+            {
+                Text = "Computador",
+                Location = new Point(80, 25),
+                Size = new Size(150, 20),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.FromArgb(120, 140, 180),
+                BackColor = Color.Transparent
+            };
+
+            Label lblComputerName = new Label
+            {
+                Text = computerName,
+                Location = new Point(80, 45),
+                Size = new Size(400, 30),
+                Font = new Font("Segoe UI", 13, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent
+            };
+
+            Label lblUserIcon = new Label
+            {
+                Text = "👤",
+                Location = new Point(600, 30),
+                Size = new Size(40, 40),
+                Font = new Font("Segoe UI", 20),
+                BackColor = Color.Transparent
+            };
+
+            Label lblUserLabel = new Label
+            {
+                Text = "Usuário",
+                Location = new Point(650, 25),
+                Size = new Size(150, 20),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.FromArgb(120, 140, 180),
+                BackColor = Color.Transparent
+            };
+
+            Label lblUserName = new Label
+            {
+                Text = userName,
+                Location = new Point(650, 45),
+                Size = new Size(400, 30),
+                Font = new Font("Segoe UI", 13, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent
+            };
+
+            infoPanel.Controls.AddRange(new Control[] { 
+                lblComputerIcon, lblComputerLabel, lblComputerName,
+                lblUserIcon, lblUserLabel, lblUserName 
+            });
+
+            // Título da seção
+            Label lblSectionTitle = new Label
+            {
+                Text = "Configuração de Conexão",
+                Location = new Point(40, 250),
+                Size = new Size(400, 30),
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left
+            };
+
+            // Painel de conteúdo
+            contentPanel = new Panel
+            {
+                Location = new Point(40, 300),
+                Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 420),
+                BackColor = Color.Transparent,
+                AutoScroll = true,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
+            };
+
+            // Botões de opção
+            CreateOptionButton(contentPanel, "🔗", "Usar URL do GitHub", 
+                "Conectar usando repositório do GitHub", 0, BtnGitHub_Click);
+
+            string defaultUrl = LoadDefaultUrl();
+            string defaultStatus = string.IsNullOrWhiteSpace(defaultUrl) ? "Não configurado" : defaultUrl;
+            CreateOptionButton(contentPanel, "⚙️", "Usar Configuração Padrão", 
+                defaultStatus, 1, BtnDefault_Click, string.IsNullOrWhiteSpace(defaultUrl));
+
+            CreateOptionButton(contentPanel, "🌐", "Digitar URL Personalizada", 
+                "Configurar URL customizada manualmente", 2, BtnCustom_Click);
+
+            CreateOptionButton(contentPanel, "⚙️", "Definir URL Padrão", 
+                "Configurar URL padrão do sistema", 3, BtnSetDefault_Click);
+
+            // Status
+            Label lblStatusLabel = new Label
+            {
+                Text = "Status",
+                Location = new Point(40, this.ClientSize.Height - 100),
+                Size = new Size(100, 20),
                 Font = new Font("Segoe UI", 10),
-                ForeColor = Color.White
+                ForeColor = Color.FromArgb(120, 140, 180),
+                BackColor = Color.Transparent,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
             };
 
-            panelTop.Controls.AddRange(new Control[] { lblTitle, lblComputer, lblUser });
-
-            // Panel de Botões
-            panelButtons = new Panel
-            {
-                Location = new Point(20, 140),
-                Size = new Size(540, 220),
-                BackColor = Color.FromArgb(40, 40, 40)
-            };
-
-            btnGitHub = CreateButton("Usar URL do GitHub", new Point(20, 20), Color.FromArgb(0, 120, 212));
-            btnGitHub.Click += BtnGitHub_Click;
-
-            btnDefault = CreateButton("Usar Configuração Padrão", new Point(20, 65), Color.FromArgb(0, 150, 0));
-            btnDefault.Click += BtnDefault_Click;
-
-            btnCustom = CreateButton("Digitar URL Personalizada", new Point(20, 110), Color.FromArgb(200, 120, 0));
-            btnCustom.Click += BtnCustom_Click;
-
-            btnSetDefault = CreateButton("Definir URL Padrão", new Point(20, 155), Color.FromArgb(120, 80, 200));
-            btnSetDefault.Click += BtnSetDefault_Click;
-
-            panelButtons.Controls.AddRange(new Control[] { btnGitHub, btnDefault, btnCustom, btnSetDefault });
-
-            // Status Label
             lblStatus = new Label
             {
-                Text = "Status: Aguardando seleção...",
-                Location = new Point(20, 370),
-                Size = new Size(560, 25),
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                ForeColor = Color.Yellow,
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-
-            // Log TextBox
-            txtLog = new TextBox
-            {
-                Location = new Point(20, 405),
-                Size = new Size(540, 80),
-                Multiline = true,
-                ScrollBars = ScrollBars.Vertical,
-                BackColor = Color.FromArgb(20, 20, 20),
-                ForeColor = Color.LightGray,
-                Font = new Font("Consolas", 9),
-                ReadOnly = true
-            };
-
-            // Botão Sair
-            btnExit = new Button
-            {
-                Text = "Sair",
-                Location = new Point(470, 495),
-                Size = new Size(90, 35),
-                BackColor = Color.FromArgb(180, 0, 0),
+                Text = "Aguardando seleção...",
+                Location = new Point(40, this.ClientSize.Height - 75),
+                Size = new Size(this.ClientSize.Width - 80, 30),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                BackColor = Color.Transparent,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
-            btnExit.FlatAppearance.BorderSize = 0;
-            btnExit.Click += (s, e) => Application.Exit();
 
-            this.Controls.AddRange(new Control[] { panelTop, panelButtons, lblStatus, txtLog, btnExit });
+            this.Controls.AddRange(new Control[] { 
+                headerPanel, infoPanel, lblSectionTitle, contentPanel, lblStatusLabel, lblStatus 
+            });
 
             UpdateDefaultButtonStatus();
         }
 
-        private Button CreateButton(string text, Point location, Color color)
+        private void MainForm_Resize(object? sender, EventArgs e)
         {
-            Button btn = new Button
+            if (contentPanel != null)
             {
-                Text = text,
-                Location = location,
-                Size = new Size(500, 35),
-                BackColor = color,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                contentPanel.Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 420);
+                ResizeOptionButtons();
+            }
+
+            if (infoPanel != null)
+            {
+                infoPanel.Size = new Size(this.ClientSize.Width - 80, 100);
+            }
+
+            if (lblStatus != null)
+            {
+                lblStatus.Location = new Point(40, this.ClientSize.Height - 75);
+                lblStatus.Size = new Size(this.ClientSize.Width - 80, 30);
+            }
+
+            foreach (Control ctrl in this.Controls)
+            {
+                if (ctrl is Label lbl && lbl.Text == "Status")
+                {
+                    lbl.Location = new Point(40, this.ClientSize.Height - 100);
+                }
+            }
+        }
+
+        private void ResizeOptionButtons()
+        {
+            if (contentPanel == null) return;
+
+            foreach (Control ctrl in contentPanel.Controls)
+            {
+                if (ctrl is Panel panel)
+                {
+                    panel.Size = new Size(contentPanel.ClientSize.Width - 20, 85);
+                }
+            }
+        }
+
+        private Panel CreateOptionButton(Panel parent, string icon, string title, string subtitle, int index, EventHandler clickEvent, bool disabled = false)
+        {
+            Panel btnPanel = new Panel
+            {
+                Location = new Point(0, index * 95),
+                Size = new Size(parent.ClientSize.Width - 20, 85),
+                BackColor = disabled ? Color.FromArgb(25, 35, 55) : Color.FromArgb(20, 40, 70),
+                Cursor = disabled ? Cursors.Default : Cursors.Hand,
+                Tag = new { Title = title, Subtitle = subtitle, Disabled = disabled }
             };
-            btn.FlatAppearance.BorderSize = 0;
-            return btn;
+
+            if (!disabled)
+            {
+                btnPanel.Click += clickEvent;
+                btnPanel.MouseEnter += (s, e) => btnPanel.BackColor = Color.FromArgb(30, 50, 85);
+                btnPanel.MouseLeave += (s, e) => btnPanel.BackColor = Color.FromArgb(20, 40, 70);
+            }
+
+            btnPanel.Paint += (s, e) => DrawRoundedRectangle(e.Graphics, btnPanel.ClientRectangle, 10, btnPanel.BackColor);
+
+            Label lblIcon = new Label
+            {
+                Text = icon,
+                Location = new Point(25, 20),
+                Size = new Size(45, 45),
+                Font = new Font("Segoe UI", 24),
+                BackColor = Color.Transparent,
+                ForeColor = disabled ? Color.FromArgb(80, 90, 110) : Color.FromArgb(100, 200, 255)
+            };
+
+            Label lblTitle = new Label
+            {
+                Text = title,
+                Location = new Point(85, 18),
+                Size = new Size(900, 28),
+                Font = new Font("Segoe UI", 13, FontStyle.Bold),
+                ForeColor = disabled ? Color.FromArgb(100, 110, 130) : Color.White,
+                BackColor = Color.Transparent
+            };
+
+            Label lblSubtitle = new Label
+            {
+                Text = subtitle,
+                Location = new Point(85, 45),
+                Size = new Size(900, 22),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.FromArgb(120, 140, 180),
+                BackColor = Color.Transparent
+            };
+
+            Label lblArrow = new Label
+            {
+                Text = "›",
+                Location = new Point(1060, 25),
+                Size = new Size(30, 35),
+                Font = new Font("Segoe UI", 24),
+                ForeColor = Color.FromArgb(120, 140, 180),
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            btnPanel.Controls.AddRange(new Control[] { lblIcon, lblTitle, lblSubtitle, lblArrow });
+
+            if (!disabled)
+            {
+                foreach (Control ctrl in btnPanel.Controls)
+                {
+                    ctrl.Click += clickEvent;
+                    ctrl.MouseEnter += (s, e) => btnPanel.BackColor = Color.FromArgb(30, 50, 85);
+                    ctrl.MouseLeave += (s, e) => btnPanel.BackColor = Color.FromArgb(20, 40, 70);
+                }
+            }
+
+            parent.Controls.Add(btnPanel);
+            return btnPanel;
+        }
+
+        private void DrawRoundedRectangle(Graphics graphics, Rectangle bounds, int cornerRadius, Color fillColor)
+        {
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (GraphicsPath path = GetRoundedRect(bounds, cornerRadius))
+            using (SolidBrush brush = new SolidBrush(fillColor))
+            {
+                graphics.FillPath(brush, path);
+            }
+        }
+
+        private GraphicsPath GetRoundedRect(Rectangle bounds, int radius)
+        {
+            int diameter = radius * 2;
+            Size size = new Size(diameter, diameter);
+            Rectangle arc = new Rectangle(bounds.Location, size);
+            GraphicsPath path = new GraphicsPath();
+
+            if (radius == 0)
+            {
+                path.AddRectangle(bounds);
+                return path;
+            }
+
+            path.AddArc(arc, 180, 90);
+            arc.X = bounds.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = bounds.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = bounds.Left;
+            path.AddArc(arc, 90, 90);
+            path.CloseFigure();
+
+            return path;
         }
 
         private void UpdateDefaultButtonStatus()
         {
             string defaultUrl = LoadDefaultUrl();
-            if (string.IsNullOrWhiteSpace(defaultUrl))
+            
+            foreach (Control ctrl in contentPanel.Controls)
             {
-                btnDefault.Enabled = false;
-                btnDefault.BackColor = Color.FromArgb(80, 80, 80);
-                btnDefault.Text = "Usar Configuração Padrão (Não configurado)";
-            }
-            else
-            {
-                btnDefault.Enabled = true;
-                btnDefault.BackColor = Color.FromArgb(0, 150, 0);
-                btnDefault.Text = "Usar Configuração Padrão";
+                if (ctrl is Panel panel && panel.Tag != null)
+                {
+                    dynamic tag = panel.Tag;
+                    if (tag.Title == "Usar Configuração Padrão")
+                    {
+                        bool hasDefault = !string.IsNullOrWhiteSpace(defaultUrl);
+                        panel.BackColor = hasDefault ? Color.FromArgb(20, 40, 70) : Color.FromArgb(25, 35, 55);
+                        panel.Cursor = hasDefault ? Cursors.Hand : Cursors.Default;
+                        
+                        foreach (Control child in panel.Controls)
+                        {
+                            if (child is Label lbl)
+                            {
+                                if (lbl.Text.Contains("Usar Configuração"))
+                                {
+                                    lbl.ForeColor = hasDefault ? Color.White : Color.FromArgb(100, 110, 130);
+                                }
+                                else if (lbl.Text == "⚙️")
+                                {
+                                    lbl.ForeColor = hasDefault ? Color.FromArgb(100, 200, 255) : Color.FromArgb(80, 90, 110);
+                                }
+                                else if (lbl.Text != "›")
+                                {
+                                    lbl.Text = hasDefault ? defaultUrl : "Não configurado";
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        private async void BtnGitHub_Click(object sender, EventArgs e)
+        private async void BtnGitHub_Click(object? sender, EventArgs e)
         {
             string url = "https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema.json";
             await ConnectToServer(url);
         }
 
-        private async void BtnDefault_Click(object sender, EventArgs e)
+        private async void BtnDefault_Click(object? sender, EventArgs e)
         {
             string url = LoadDefaultUrl();
             if (string.IsNullOrWhiteSpace(url))
@@ -210,7 +440,7 @@ namespace AxiiDesktopClient
             await ConnectToServer(url);
         }
 
-        private async void BtnCustom_Click(object sender, EventArgs e)
+        private async void BtnCustom_Click(object? sender, EventArgs e)
         {
             using (var inputForm = new InputForm("Digite a URL do JSON de configuração:"))
             {
@@ -225,7 +455,7 @@ namespace AxiiDesktopClient
             }
         }
 
-        private void BtnSetDefault_Click(object sender, EventArgs e)
+        private void BtnSetDefault_Click(object? sender, EventArgs e)
         {
             using (var inputForm = new InputForm("Digite a URL que deseja salvar como padrão:"))
             {
@@ -244,15 +474,12 @@ namespace AxiiDesktopClient
 
         private async Task ConnectToServer(string jsonUrl)
         {
-            DisableButtons();
-            UpdateStatus("Buscando configuração do servidor...", Color.Yellow);
-            AppendLog($"[{DateTime.Now:HH:mm:ss}] Conectando usando: {jsonUrl}");
+            UpdateStatus("Buscando configuração do servidor...");
 
             try
             {
                 string serverIp = await GetServerUrlFromJson(jsonUrl);
-                UpdateStatus($"Servidor encontrado: {serverIp}", Color.Lime);
-                AppendLog($"[{DateTime.Now:HH:mm:ss}] Servidor encontrado: {serverIp}");
+                UpdateStatus($"Conectando ao servidor: {serverIp}");
 
                 string serverUrl = $"{serverIp.TrimEnd('/')}/commandHub?computer={Uri.EscapeDataString(computerName)}";
 
@@ -274,16 +501,12 @@ namespace AxiiDesktopClient
 
                 await connection.StartAsync();
 
-                UpdateStatus("CONECTADO COM SUCESSO!", Color.Lime);
-                AppendLog($"[{DateTime.Now:HH:mm:ss}] Conectado com sucesso!");
-                AppendLog($"[{DateTime.Now:HH:mm:ss}] Status: Aguardando comandos...");
+                UpdateStatus("Conectado! Aguardando comandos...");
             }
             catch (Exception ex)
             {
-                UpdateStatus("ERRO DE CONEXÃO", Color.Red);
-                AppendLog($"[{DateTime.Now:HH:mm:ss}] ERRO: {ex.Message}");
+                UpdateStatus($"Erro de conexão: {ex.Message}");
                 MessageBox.Show($"Erro ao conectar:\n{ex.Message}", "Erro de Conexão", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                EnableButtons();
             }
         }
 
@@ -293,8 +516,7 @@ namespace AxiiDesktopClient
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    UpdateStatus("Reconectando ao servidor...", Color.Yellow);
-                    AppendLog($"[{DateTime.Now:HH:mm:ss}] Reconectando...");
+                    UpdateStatus("Reconectando ao servidor...");
                 });
                 return Task.CompletedTask;
             };
@@ -303,8 +525,7 @@ namespace AxiiDesktopClient
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    UpdateStatus("Reconectado com sucesso!", Color.Lime);
-                    AppendLog($"[{DateTime.Now:HH:mm:ss}] Reconectado com sucesso!");
+                    UpdateStatus("Reconectado com sucesso!");
                 });
                 return Task.CompletedTask;
             };
@@ -313,24 +534,24 @@ namespace AxiiDesktopClient
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    UpdateStatus("Conexão perdida!", Color.Red);
-                    AppendLog($"[{DateTime.Now:HH:mm:ss}] Conexão perdida!");
-                    EnableButtons();
+                    UpdateStatus("Conexão perdida!");
                 });
+                
+                await Task.CompletedTask;
             };
 
             connection.On<string>("ExecuteCommand", async (action) =>
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    AppendLog($"[{DateTime.Now:HH:mm:ss}] Comando recebido: {action}");
+                    UpdateStatus($"Executando comando: {action}");
                 });
 
                 string result = await Task.Run(() => ExecuteBatScript(action));
 
                 this.Invoke((MethodInvoker)delegate
                 {
-                    AppendLog($"[{DateTime.Now:HH:mm:ss}] {result}");
+                    UpdateStatus($"Comando executado: {result}");
                 });
             });
         }
@@ -389,46 +610,46 @@ namespace AxiiDesktopClient
             {
                 case "notepad":
                     batContent = "@echo off\nstart notepad.exe";
-                    description = "✓ Bloco de Notas aberto com sucesso!";
+                    description = "Bloco de Notas aberto";
                     break;
 
                 case "datetime":
                     batContent = "@echo off\ntitle Axii Desktop - Data e Hora\ncolor 0A\necho.\necho \necho            AXII DESKTOP - INFORMACOES DO SISTEMA\necho \necho.\necho  Computador: %COMPUTERNAME%\necho  Usuario: %USERNAME%\necho.\necho  Data: %date%\necho  Hora: %time%\necho.\necho \necho.\npause";
-                    description = "✓ Janela de Data/Hora exibida com sucesso!";
+                    description = "Data/Hora exibida";
                     break;
 
                 case "file":
                     batContent = "@echo off\necho  > created_file.txt\necho           ARQUIVO CRIADO PELO AXII DESKTOP SYSTEM >> created_file.txt\necho  >> created_file.txt\necho. >> created_file.txt\necho Data de Criacao: %date% %time% >> created_file.txt\necho Computador: %COMPUTERNAME% >> created_file.txt\necho Usuario: %USERNAME% >> created_file.txt\necho Sistema: %OS% >> created_file.txt\necho. >> created_file.txt\necho Este arquivo foi criado automaticamente pelo sistema de >> created_file.txt\necho controle remoto Axii Desktop. >> created_file.txt\necho. >> created_file.txt\necho  >> created_file.txt\ntitle Axii Desktop - Arquivo Criado\ncolor 0A\necho.\necho Arquivo 'created_file.txt' criado com sucesso!\necho.\necho Conteudo do arquivo:\necho.\ntype created_file.txt\necho.\npause";
-                    description = "✓ Arquivo 'created_file.txt' criado com sucesso!";
+                    description = "Arquivo criado";
                     break;
 
                 case "vscode":
                     batContent = "@echo off\nstart code";
-                    description = "✓ Visual Studio Code aberto com sucesso!";
+                    description = "VS Code aberto";
                     break;
 
                 case "visualstudio":
                     batContent = "@echo off\nstart devenv";
-                    description = "✓ Visual Studio aberto com sucesso!";
+                    description = "Visual Studio aberto";
                     break;
 
                 case "laragon":
                     batContent = "@echo off\nif exist \"C:\\laragon\\laragon.exe\" (\n    start \"\" \"C:\\laragon\\laragon.exe\"\n    echo Laragon iniciado!\n) else (\n    echo Laragon nao encontrado em C:\\laragon\\laragon.exe\n    pause\n)";
-                    description = "✓ Laragon aberto com sucesso!";
+                    description = "Laragon aberto";
                     break;
 
                 case "packettracer":
                     batContent = "@echo off\nif exist \"C:\\Program Files\\Cisco Packet Tracer 8.2\\bin\\PacketTracer.exe\" (\n    start \"\" \"C:\\Program Files\\Cisco Packet Tracer 8.2\\bin\\PacketTracer.exe\"\n) else if exist \"C:\\Program Files\\Cisco Packet Tracer\\bin\\PacketTracer.exe\" (\n    start \"\" \"C:\\Program Files\\Cisco Packet Tracer\\bin\\PacketTracer.exe\"\n) else if exist \"C:\\Program Files (x86)\\Cisco Packet Tracer\\bin\\PacketTracer.exe\" (\n    start \"\" \"C:\\Program Files (x86)\\Cisco Packet Tracer\\bin\\PacketTracer.exe\"\n) else (\n    echo Packet Tracer nao encontrado\n    pause\n)";
-                    description = "✓ Cisco Packet Tracer aberto com sucesso!";
+                    description = "Packet Tracer aberto";
                     break;
 
                 case "ngrok":
                     batContent = "@echo off\ntitle Axii Desktop - Ngrok Tunnel\ncolor 0B\necho.\necho \necho              AXII DESKTOP - INICIANDO NGROK\necho \necho.\nngrok http 5000";
-                    description = "✓ Ngrok iniciado na porta 5000!";
+                    description = "Ngrok iniciado";
                     break;
 
                 default:
-                    return $"❌ Ação inválida: '{action}'";
+                    return $"Ação inválida: '{action}'";
             }
 
             try
@@ -468,7 +689,7 @@ namespace AxiiDesktopClient
             }
             catch (Exception ex)
             {
-                return $"❌ Erro ao executar: {ex.Message}";
+                return $"Erro: {ex.Message}";
             }
         }
 
@@ -494,35 +715,13 @@ namespace AxiiDesktopClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao salvar configuração: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Erro ao salvar: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void UpdateStatus(string message, Color color)
+        private void UpdateStatus(string message)
         {
-            lblStatus.Text = $"Status: {message}";
-            lblStatus.ForeColor = color;
-        }
-
-        private void AppendLog(string message)
-        {
-            txtLog.AppendText(message + Environment.NewLine);
-        }
-
-        private void DisableButtons()
-        {
-            btnGitHub.Enabled = false;
-            btnDefault.Enabled = false;
-            btnCustom.Enabled = false;
-            btnSetDefault.Enabled = false;
-        }
-
-        private void EnableButtons()
-        {
-            btnGitHub.Enabled = true;
-            btnCustom.Enabled = true;
-            btnSetDefault.Enabled = true;
-            UpdateDefaultButtonStatus();
+            lblStatus.Text = message;
         }
     }
 
@@ -538,54 +737,58 @@ namespace AxiiDesktopClient
         public InputForm(string prompt)
         {
             this.Text = "Axii Desktop Client";
-            this.Size = new Size(500, 180);
+            this.Size = new Size(600, 220);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.BackColor = Color.FromArgb(30, 30, 30);
+            this.BackColor = Color.FromArgb(15, 30, 60);
 
             lblPrompt = new Label
             {
                 Text = prompt,
-                Location = new Point(20, 20),
-                Size = new Size(440, 30),
-                Font = new Font("Segoe UI", 10),
-                ForeColor = Color.White
+                Location = new Point(30, 30),
+                Size = new Size(520, 30),
+                Font = new Font("Segoe UI", 11),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent
             };
 
             txtInput = new TextBox
             {
-                Location = new Point(20, 60),
-                Size = new Size(440, 30),
-                Font = new Font("Segoe UI", 10),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Location = new Point(30, 75),
+                Size = new Size(520, 35),
+                Font = new Font("Segoe UI", 11),
+                BackColor = Color.FromArgb(25, 45, 75),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
             };
 
             btnOk = new Button
             {
-                Text = "OK",
-                Location = new Point(280, 100),
-                Size = new Size(90, 35),
+                Text = "Confirmar",
+                Location = new Point(340, 135),
+                Size = new Size(100, 40),
                 BackColor = Color.FromArgb(0, 120, 212),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                DialogResult = DialogResult.OK
+                DialogResult = DialogResult.OK,
+                Cursor = Cursors.Hand
             };
             btnOk.FlatAppearance.BorderSize = 0;
 
             btnCancel = new Button
             {
                 Text = "Cancelar",
-                Location = new Point(380, 100),
-                Size = new Size(90, 35),
-                BackColor = Color.FromArgb(120, 120, 120),
+                Location = new Point(450, 135),
+                Size = new Size(100, 40),
+                BackColor = Color.FromArgb(60, 70, 90),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                DialogResult = DialogResult.Cancel
+                DialogResult = DialogResult.Cancel,
+                Cursor = Cursors.Hand
             };
             btnCancel.FlatAppearance.BorderSize = 0;
 

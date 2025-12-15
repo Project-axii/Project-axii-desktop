@@ -3,12 +3,24 @@
   "WorkspaceRootPath": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiclient\\axiiclient.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|solutionrelative:axiiclient\\axiiclient.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+      "AbsoluteMoniker": "D:0:0:{AEDDDAC8-32FE-A490-9102-677E9D7E42A9}|AxiiServer\\AxiiServer.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiserver\\axiiserver.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{AEDDDAC8-32FE-A490-9102-677E9D7E42A9}|AxiiServer\\AxiiServer.csproj|solutionrelative:axiiserver\\axiiserver.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AEDDDAC8-32FE-A490-9102-677E9D7E42A9}|AxiiServer\\AxiiServer.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiserver\\axiiserver.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{AEDDDAC8-32FE-A490-9102-677E9D7E42A9}|AxiiServer\\AxiiServer.csproj|solutionrelative:axiiserver\\axiiserver.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
     },
     {
       "AbsoluteMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|solutionrelative:axiiclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiclient\\axiiclient.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|solutionrelative:axiiclient\\axiiclient.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|c:\\laragon\\www\\tcc-axii\\project-axii-desktop\\axiiclient\\axiiclient.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{58C6C47B-CDDD-6CB4-6E85-C63AAAEF8577}|AxiiClient\\AxiiClient.csproj|solutionrelative:axiiclient\\axiiclient.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,30 +30,67 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AxiiServer",
+              "DocumentMoniker": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiServer\\AxiiServer.csproj",
+              "RelativeDocumentMoniker": "AxiiServer\\AxiiServer.csproj",
+              "ToolTip": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiServer\\AxiiServer.csproj",
+              "RelativeToolTip": "AxiiServer\\AxiiServer.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-15T02:34:03.952Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "AxiiServer",
+              "DocumentMoniker": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiServer\\AxiiServer.csproj",
+              "RelativeDocumentMoniker": "AxiiServer\\AxiiServer.csproj",
+              "ToolTip": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiServer\\AxiiServer.csproj",
+              "RelativeToolTip": "AxiiServer\\AxiiServer.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-15T02:34:10.329Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AxiiClient",
+              "DocumentMoniker": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\AxiiClient.csproj",
+              "RelativeDocumentMoniker": "AxiiClient\\AxiiClient.csproj",
+              "ToolTip": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\AxiiClient.csproj",
+              "RelativeToolTip": "AxiiClient\\AxiiClient.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-15T02:15:30.634Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\Program.cs",
               "RelativeDocumentMoniker": "AxiiClient\\Program.cs",
               "ToolTip": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\Program.cs",
               "RelativeToolTip": "AxiiClient\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAD0AAAAAAAAAAAASwEQAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-15T01:20:34.56Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "AxiiClient.csproj",
               "DocumentMoniker": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\AxiiClient.csproj",
               "RelativeDocumentMoniker": "AxiiClient\\AxiiClient.csproj",
               "ToolTip": "C:\\laragon\\www\\tcc-axii\\Project-axii-desktop\\AxiiClient\\AxiiClient.csproj",
               "RelativeToolTip": "AxiiClient\\AxiiClient.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAAAAgAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2025-12-15T01:20:24.376Z",
               "EditorCaption": ""
