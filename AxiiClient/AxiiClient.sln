@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AxiiClient", "AxiiClient.csproj", "{8592F6BD-3D9A-37AA-F447-4665A9912257}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8592F6BD-3D9A-37AA-F447-4665A9912257}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8592F6BD-3D9A-37AA-F447-4665A9912257}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8592F6BD-3D9A-37AA-F447-4665A9912257}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8592F6BD-3D9A-37AA-F447-4665A9912257}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D1BA57C8-4309-4BE0-BFFC-FFB19171E394}
+	EndGlobalSection
+EndGlobal

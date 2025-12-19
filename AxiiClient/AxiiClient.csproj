@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,4 +33,7 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+  <Reference Include="System.Management" />
+  </ItemGroup>
 </Project>

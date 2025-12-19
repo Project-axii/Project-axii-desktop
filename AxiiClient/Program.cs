@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Management;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -36,9 +37,18 @@ namespace AxiiDesktopClient
         private Label lblStatus = null!;
         private Panel contentPanel = null!;
 
+        // Monitoramento de Performance
+        private PerformanceMonitor performanceMonitor;
+        private Label lblCpuUsage;
+        private Label lblRamUsage;
+        private ProgressBar pbCpu;
+        private ProgressBar pbRam;
+        private Panel statsPanel;
+
         public MainForm()
         {
             InitializeComponents();
+            InitializePerformanceMonitoring();
         }
 
         private void InitializeComponents()
@@ -169,7 +179,7 @@ namespace AxiiDesktopClient
             Label lblSectionTitle = new Label
             {
                 Text = "Configuração de Conexão",
-                Location = new Point(40, 250),
+                Location = new Point(40, 340),
                 Size = new Size(400, 30),
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.White,
@@ -180,8 +190,8 @@ namespace AxiiDesktopClient
             // Painel de conteúdo
             contentPanel = new Panel
             {
-                Location = new Point(40, 300),
-                Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 420),
+                Location = new Point(40, 390),
+                Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 510),
                 BackColor = Color.Transparent,
                 AutoScroll = true,
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
@@ -232,17 +242,146 @@ namespace AxiiDesktopClient
             UpdateDefaultButtonStatus();
         }
 
+        private void InitializePerformanceMonitoring()
+        {
+            // Criar painel de estatísticas
+            statsPanel = new Panel
+            {
+                Location = new Point(40, 240),
+                Size = new Size(this.ClientSize.Width - 80, 80),
+                BackColor = Color.FromArgb(20, 40, 70),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+            statsPanel.Paint += (s, e) => DrawRoundedRectangle(e.Graphics, statsPanel.ClientRectangle, 10, Color.FromArgb(20, 40, 70));
+
+            // CPU Label
+            Label lblCpuLabel = new Label
+            {
+                Text = "CPU",
+                Location = new Point(30, 15),
+                Size = new Size(80, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(100, 200, 255),
+                BackColor = Color.Transparent
+            };
+
+            lblCpuUsage = new Label
+            {
+                Text = "0%",
+                Location = new Point(120, 15),
+                Size = new Size(100, 20),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent
+            };
+
+            pbCpu = new ProgressBar
+            {
+                Location = new Point(230, 15),
+                Size = new Size(this.ClientSize.Width - 300, 20),
+                Style = ProgressBarStyle.Continuous,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            // RAM Label
+            Label lblRamLabel = new Label
+            {
+                Text = "RAM",
+                Location = new Point(30, 45),
+                Size = new Size(80, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(100, 200, 255),
+                BackColor = Color.Transparent
+            };
+
+            lblRamUsage = new Label
+            {
+                Text = "0 MB / 0 MB",
+                Location = new Point(120, 45),
+                Size = new Size(400, 20),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent
+            };
+
+            pbRam = new ProgressBar
+            {
+                Location = new Point(230, 45),
+                Size = new Size(this.ClientSize.Width - 300, 20),
+                Style = ProgressBarStyle.Continuous,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            statsPanel.Controls.AddRange(new Control[] { 
+                lblCpuLabel, lblCpuUsage, pbCpu,
+                lblRamLabel, lblRamUsage, pbRam
+            });
+
+            this.Controls.Add(statsPanel);
+
+            // Inicializar monitor de performance
+            performanceMonitor = new PerformanceMonitor();
+            performanceMonitor.OnPerformanceUpdate += PerformanceMonitor_OnUpdate;
+            performanceMonitor.StartMonitoring(1000); // Atualiza a cada 1 segundo
+        }
+
+        private void PerformanceMonitor_OnUpdate(object sender, PerformanceData data)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => UpdatePerformanceUI(data)));
+            }
+            else
+            {
+                UpdatePerformanceUI(data);
+            }
+        }
+
+        private void UpdatePerformanceUI(PerformanceData data)
+        {
+            // Atualizar CPU
+            lblCpuUsage.Text = data.CpuUsageFormatted;
+            pbCpu.Value = Math.Min((int)data.CpuUsagePercent, 100);
+
+            if (data.CpuUsagePercent > 80)
+                lblCpuUsage.ForeColor = Color.FromArgb(255, 100, 100);
+            else if (data.CpuUsagePercent > 50)
+                lblCpuUsage.ForeColor = Color.FromArgb(255, 200, 100);
+            else
+                lblCpuUsage.ForeColor = Color.White;
+
+            // Atualizar RAM
+            lblRamUsage.Text = data.RamUsageFormatted;
+            pbRam.Value = Math.Min((int)data.RamUsagePercent, 100);
+
+            if (data.RamUsagePercent > 80)
+                lblRamUsage.ForeColor = Color.FromArgb(255, 100, 100);
+            else if (data.RamUsagePercent > 50)
+                lblRamUsage.ForeColor = Color.FromArgb(255, 200, 100);
+            else
+                lblRamUsage.ForeColor = Color.White;
+        }
+
         private void MainForm_Resize(object? sender, EventArgs e)
         {
             if (contentPanel != null)
             {
-                contentPanel.Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 420);
+                contentPanel.Size = new Size(this.ClientSize.Width - 80, this.ClientSize.Height - 510);
                 ResizeOptionButtons();
             }
 
             if (infoPanel != null)
             {
                 infoPanel.Size = new Size(this.ClientSize.Width - 80, 100);
+            }
+
+            if (statsPanel != null)
+            {
+                statsPanel.Size = new Size(this.ClientSize.Width - 80, 80);
+                if (pbCpu != null)
+                    pbCpu.Size = new Size(this.ClientSize.Width - 300, 20);
+                if (pbRam != null)
+                    pbRam.Size = new Size(this.ClientSize.Width - 300, 20);
             }
 
             if (lblStatus != null)
@@ -425,7 +564,7 @@ namespace AxiiDesktopClient
 
         private async void BtnGitHub_Click(object? sender, EventArgs e)
         {
-            string url = "https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema.json";
+            string url = "https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema_desk.json";
             await ConnectToServer(url);
         }
 
@@ -723,6 +862,117 @@ namespace AxiiDesktopClient
         {
             lblStatus.Text = message;
         }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            performanceMonitor?.StopMonitoring();
+            performanceMonitor?.Dispose();
+            base.OnFormClosing(e);
+        }
+    }
+    
+    public class PerformanceMonitor
+    {
+        private PerformanceCounter cpuCounter;
+        private PerformanceCounter ramCounter;
+        private System.Windows.Forms.Timer updateTimer;
+
+        public event EventHandler<PerformanceData> OnPerformanceUpdate;
+
+        public PerformanceMonitor()
+        {
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+            cpuCounter.NextValue();
+        }
+
+        public void StartMonitoring(int intervalMs = 1000)
+        {
+            updateTimer = new System.Windows.Forms.Timer();
+            updateTimer.Interval = intervalMs;
+            updateTimer.Tick += async (s, e) => await UpdatePerformanceAsync();
+            updateTimer.Start();
+        }
+
+        public void StopMonitoring()
+        {
+            updateTimer?.Stop();
+        }
+
+        private async Task UpdatePerformanceAsync()
+        {
+            await Task.Run(() =>
+            {
+                var data = GetCurrentPerformance();
+                OnPerformanceUpdate?.Invoke(this, data);
+            });
+        }
+
+        public PerformanceData GetCurrentPerformance()
+        {
+            float cpuUsage = cpuCounter.NextValue();
+            float availableRamMB = ramCounter.NextValue();
+            float totalRamMB = GetTotalPhysicalMemoryMB();
+            float usedRamMB = totalRamMB - availableRamMB;
+            float ramUsagePercent = (usedRamMB / totalRamMB) * 100;
+
+            return new PerformanceData
+            {
+                CpuUsagePercent = Math.Round(cpuUsage, 2),
+                RamUsedMB = Math.Round(usedRamMB, 2),
+                RamAvailableMB = Math.Round(availableRamMB, 2),
+                RamTotalMB = Math.Round(totalRamMB, 2),
+                RamUsagePercent = Math.Round(ramUsagePercent, 2)
+            };
+        }
+
+        private float GetTotalPhysicalMemoryMB()
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem"))
+                {
+                    foreach (ManagementObject obj in searcher.Get())
+                    {
+                        long totalBytes = Convert.ToInt64(obj["TotalPhysicalMemory"]);
+                        return totalBytes / (1024f * 1024f);
+                    }
+                }
+            }
+            catch
+            {
+                return 8192;
+            }
+            return 0;
+        }
+
+        public void Dispose()
+        {
+            updateTimer?.Dispose();
+            cpuCounter?.Dispose();
+            ramCounter?.Dispose();
+        }
+        public async Task SendToServer(HubConnection connection)
+        {
+            var data = GetCurrentPerformance();
+            await connection.InvokeAsync("UpdatePerformanceStats", 
+                data.CpuUsagePercent, 
+                data.RamUsagePercent, 
+                data.RamUsedMB, 
+                data.RamTotalMB);
+        }
+    }
+
+    public class PerformanceData
+    {
+        public double CpuUsagePercent { get; set; }
+        public double RamUsedMB { get; set; }
+        public double RamAvailableMB { get; set; }
+        public double RamTotalMB { get; set; }
+        public double RamUsagePercent { get; set; }
+
+        public string CpuUsageFormatted => $"{CpuUsagePercent:F1}%";
+        public string RamUsageFormatted => $"{RamUsedMB:F0} MB / {RamTotalMB:F0} MB ({RamUsagePercent:F1}%)";
     }
 
     public class InputForm : Form
