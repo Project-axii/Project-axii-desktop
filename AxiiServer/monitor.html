@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Performance - Axii Desktop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse-anim { animation: pulse 2s infinite; }
+        .slide-in { animation: slideIn 0.3s ease; }
+
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+
+        .chart-container {
+            min-height: 120px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950 min-h-screen p-4">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -top-48 -left-48 animate-pulse"></div>
+        <div class="absolute w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -bottom-48 -right-48 animate-pulse" style="animation-delay: 1s;"></div>
+    </div>
+
+    <div class="w-full max-w-7xl mx-auto relative z-10">
+        <!-- Header -->
+        <div class="glass-effect rounded-3xl shadow-2xl mb-8 overflow-hidden">
+            <div class="relative p-8 text-center">
+                <div class="relative z-10">
+                    <div class="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4">
+                        <img src="img/white-logo.svg" alt="Axii Logo" class="w-full h-full object-contain"/>
+                    </div>
+                    <h1 class="text-4xl font-black mb-2 text-white tracking-tight">
+                        MONITOR DE PERFORMANCE
+                    </h1>
+                    <p class="text-blue-100 text-base font-medium">
+                        Acompanhamento em tempo real
+                    </p>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="px-8 py-5 bg-slate-900/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="statusIndicator" class="w-3 h-3 rounded-full bg-emerald-400 pulse-anim shadow-lg"></div>
+                        <div>
+                            <p id="statusText" class="font-bold text-sm text-emerald-400">Conectado ao Servidor</p>
+                            <p id="clientsCount" class="text-gray-400 text-xs mt-0.5">0 computadores monitorados</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.location.href='/'" class="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-lg text-blue-400 text-sm font-medium transition-all">
+                            ← Voltar ao Controle
+                        </button>
+                        <button onclick="refreshData()" class="bg-purple-500/20 hover:bg-purple-500/30 px-4 py-2 rounded-lg text-purple-400 text-sm font-medium transition-all">
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="computersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>
+
+        <div id="emptyState" class="glass-effect rounded-3xl shadow-2xl p-12 text-center hidden">
+            <svg class="w-24 h-24 mx-auto mb-6 text-gray-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-2xl font-bold text-white mb-3">Nenhum computador conectado</h3>
+            <p class="text-gray-400 text-base">Execute os clientes nos PCs para começar o monitoramento</p>
+        </div>
+    </div>
+
+    <script>
+        let connection = null;
+        let performanceData = new Map();
+
+        async function initializeConnection() {
+            try {
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/commandHub?computer=Monitor")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("PerformanceUpdate", (connectionId, perfInfo) => {
+                    updatePerformanceCard(connectionId, perfInfo);
+                });
+
+                connection.onreconnecting(() => {
+                    updateStatus(false, "Reconectando...");
+                });
+
+                connection.onreconnected(() => {
+                    updateStatus(true, "Conectado ao Servidor");
+                    refreshData();
+                });
+
+                connection.onclose(() => {
+                    updateStatus(false, "Desconectado");
+                });
+
+                await connection.start();
+                updateStatus(true, "Conectado ao Servidor");
+                
+                await refreshData();
+                
+                setInterval(refreshData, 1000);
+            } catch (err) {
+                console.error('Erro ao conectar:', err);
+                updateStatus(false, "Erro de conexão");
+            }
+        }
+
+        async function refreshData() {
+            try {
+                const response = await fetch('/performance');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateClientsCount(data.count);
+                    
+                    if (data.count === 0) {
+                        showEmptyState();
+                    } else {
+                        hideEmptyState();
+                        data.clients.forEach(client => {
+                            updatePerformanceCard(client.connectionId, {
+                                CpuUsagePercent: client.cpuUsage,
+                                RamUsagePercent: client.ramUsage,
+                                RamUsedMB: client.ramUsed,
+                                RamTotalMB: client.ramTotal,
+                                LastUpdate: client.lastUpdate
+                            }, client.computerName);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao buscar dados:', err);
+            }
+        }
+
+        function updatePerformanceCard(connectionId, perfInfo, computerName = null) {
+            let card = document.getElementById(`card-${connectionId}`);
+            
+            if (!card) {
+                card = createPerformanceCard(connectionId, computerName || `PC-${connectionId.substring(0, 8)}`);
+            }
+            
+            // Atualizar CPU
+            const cpuValue = Math.round(perfInfo.CpuUsagePercent);
+            const cpuBar = card.querySelector('.cpu-bar');
+            const cpuText = card.querySelector('.cpu-text');
+            const cpuPercent = card.querySelector('.cpu-percent');
+            
+            cpuBar.style.width = `${cpuValue}%`;
+            cpuBar.className = `cpu-bar h-full rounded-full progress-bar ${getCpuColor(cpuValue)}`;
+            cpuText.textContent = `${cpuValue}%`;
+            cpuPercent.textContent = `${cpuValue}%`;
+            
+            // Atualizar RAM
+            const ramValue = Math.round(perfInfo.RamUsagePercent);
+            const ramUsed = Math.round(perfInfo.RamUsedMB);
+            const ramTotal = Math.round(perfInfo.RamTotalMB);
+            const ramBar = card.querySelector('.ram-bar');
+            const ramText = card.querySelector('.ram-text');
+            const ramPercent = card.querySelector('.ram-percent');
+            
+            ramBar.style.width = `${ramValue}%`;
+            ramBar.className = `ram-bar h-full rounded-full progress-bar ${getRamColor(ramValue)}`;
+            ramText.textContent = `${ramUsed} MB / ${ramTotal} MB`;
+            ramPercent.textContent = `${ramValue}%`;
+            
+            // Atualizar timestamp
+            const timestamp = card.querySelector('.timestamp');
+            timestamp.textContent = new Date(perfInfo.LastUpdate).toLocaleTimeString('pt-BR');
+        }
+
+        function createPerformanceCard(connectionId, computerName) {
+            const grid = document.getElementById('computersGrid');
+            
+            const card = document.createElement('div');
+            card.id = `card-${connectionId}`;
+            card.className = 'glass-effect rounded-2xl shadow-2xl overflow-hidden slide-in';
+            
+            card.innerHTML = `
+                <div class="p-6">
+                    <!-- Header do Card -->
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold text-lg">${computerName}</h3>
+                            <p class="text-gray-400 text-xs timestamp">--:--:--</p>
+                        </div>
+                        <div class="w-2 h-2 bg-green-400 rounded-full pulse-anim"></div>
+                    </div>
+
+                    <!-- CPU Usage -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 7H7v6h6V7z" />
+                                    <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="text-gray-300 text-sm font-medium">CPU</span>
+                            </div>
+                            <span class="cpu-text text-white text-sm font-bold">0%</span>
+                        </div>
+                        <div class="relative w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="cpu-bar h-full rounded-full progress-bar bg-gradient-to-r from-blue-500 to-cyan-500" style="width: 0%"></div>
+                        </div>
+                        <div class="text-right mt-1">
+                            <span class="cpu-percent text-gray-400 text-xs">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- RAM Usage -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
+                                    <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
+                                    <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
+                                </svg>
+                                <span class="text-gray-300 text-sm font-medium">RAM</span>
+                            </div>
+                            <span class="ram-text text-white text-xs font-bold">0 MB / 0 MB</span>
+                        </div>
+                        <div class="relative w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="ram-bar h-full rounded-full progress-bar bg-gradient-to-r from-purple-500 to-pink-500" style="width: 0%"></div>
+                        </div>
+                        <div class="text-right mt-1">
+                            <span class="ram-percent text-gray-400 text-xs">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Footer -->
+                <div class="px-6 py-3 bg-slate-900/50 border-t border-slate-800">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-500">Status do Sistema</span>
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                            <span class="text-green-400 font-medium">Online</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            grid.appendChild(card);
+            return card;
+        }
+
+        function getCpuColor(value) {
+            if (value >= 80) return 'bg-gradient-to-r from-red-500 to-red-600';
+            if (value >= 50) return 'bg-gradient-to-r from-orange-500 to-amber-500';
+            return 'bg-gradient-to-r from-blue-500 to-cyan-500';
+        }
+
+        function getRamColor(value) {
+            if (value >= 80) return 'bg-gradient-to-r from-red-500 to-red-600';
+            if (value >= 50) return 'bg-gradient-to-r from-orange-500 to-amber-500';
+            return 'bg-gradient-to-r from-purple-500 to-pink-500';
+        }
+
+        function updateStatus(isConnected, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            if (isConnected) {
+                indicator.className = 'w-3 h-3 rounded-full bg-emerald-400 pulse-anim shadow-lg';
+                statusText.className = 'font-bold text-sm text-emerald-400';
+            } else {
+                indicator.className = 'w-3 h-3 rounded-full bg-red-400 pulse-anim shadow-lg';
+                statusText.className = 'font-bold text-sm text-red-400';
+            }
+            
+            statusText.textContent = message;
+        }
+
+        function updateClientsCount(count) {
+            const clientsCount = document.getElementById('clientsCount');
+            clientsCount.textContent = `${count} computador${count !== 1 ? 'es' : ''} monitorado${count !== 1 ? 's' : ''}`;
+        }
+
+        function showEmptyState() {
+            document.getElementById('computersGrid').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+
+        function hideEmptyState() {
+            document.getElementById('computersGrid').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeConnection();
+        });
+    </script>
+</body>
+</html>

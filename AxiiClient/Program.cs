@@ -45,10 +45,14 @@ namespace AxiiDesktopClient
         private ProgressBar pbRam;
         private Panel statsPanel;
 
+        // Timer para enviar performance ao servidor
+        private System.Windows.Forms.Timer performanceSendTimer;
+
         public MainForm()
         {
             InitializeComponents();
             InitializePerformanceMonitoring();
+            InitializePerformanceSendTimer();
         }
 
         private void InitializeComponents()
@@ -323,6 +327,33 @@ namespace AxiiDesktopClient
             performanceMonitor = new PerformanceMonitor();
             performanceMonitor.OnPerformanceUpdate += PerformanceMonitor_OnUpdate;
             performanceMonitor.StartMonitoring(1000); // Atualiza a cada 1 segundo
+        }
+
+        private void InitializePerformanceSendTimer()
+        {
+            performanceSendTimer = new System.Windows.Forms.Timer();
+            performanceSendTimer.Interval = 2000; // Envia a cada 2 segundos
+            performanceSendTimer.Tick += async (s, e) => await SendPerformanceToServer();
+        }
+
+        private async Task SendPerformanceToServer()
+        {
+            if (connection != null && connection.State == HubConnectionState.Connected)
+            {
+                try
+                {
+                    var data = performanceMonitor.GetCurrentPerformance();
+                    await connection.InvokeAsync("UpdatePerformanceStats", 
+                        data.CpuUsagePercent, 
+                        data.RamUsagePercent, 
+                        data.RamUsedMB, 
+                        data.RamTotalMB);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao enviar performance: {ex.Message}");
+                }
+            }
         }
 
         private void PerformanceMonitor_OnUpdate(object sender, PerformanceData data)
@@ -641,6 +672,9 @@ namespace AxiiDesktopClient
                 await connection.StartAsync();
 
                 UpdateStatus("Conectado! Aguardando comandos...");
+                
+                // Iniciar envio de dados de performance
+                performanceSendTimer.Start();
             }
             catch (Exception ex)
             {
@@ -656,6 +690,7 @@ namespace AxiiDesktopClient
                 this.Invoke((MethodInvoker)delegate
                 {
                     UpdateStatus("Reconectando ao servidor...");
+                    performanceSendTimer.Stop();
                 });
                 return Task.CompletedTask;
             };
@@ -665,6 +700,7 @@ namespace AxiiDesktopClient
                 this.Invoke((MethodInvoker)delegate
                 {
                     UpdateStatus("Reconectado com sucesso!");
+                    performanceSendTimer.Start();
                 });
                 return Task.CompletedTask;
             };
@@ -674,6 +710,7 @@ namespace AxiiDesktopClient
                 this.Invoke((MethodInvoker)delegate
                 {
                     UpdateStatus("Conexão perdida!");
+                    performanceSendTimer.Stop();
                 });
                 
                 await Task.CompletedTask;
@@ -867,6 +904,8 @@ namespace AxiiDesktopClient
         {
             performanceMonitor?.StopMonitoring();
             performanceMonitor?.Dispose();
+            performanceSendTimer?.Stop();
+            performanceSendTimer?.Dispose();
             base.OnFormClosing(e);
         }
     }
@@ -951,15 +990,6 @@ namespace AxiiDesktopClient
             updateTimer?.Dispose();
             cpuCounter?.Dispose();
             ramCounter?.Dispose();
-        }
-        public async Task SendToServer(HubConnection connection)
-        {
-            var data = GetCurrentPerformance();
-            await connection.InvokeAsync("UpdatePerformanceStats", 
-                data.CpuUsagePercent, 
-                data.RamUsagePercent, 
-                data.RamUsedMB, 
-                data.RamTotalMB);
         }
     }
 

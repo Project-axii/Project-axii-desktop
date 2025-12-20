@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,6 +38,7 @@ app.UseRouting();
 app.MapHub<CommandHub>("/commandHub");
 
 app.MapGet("/", () => Results.Content(File.ReadAllText("index.html"), "text/html"));
+app.MapGet("/monitor", () => Results.Content(File.ReadAllText("monitor.html"), "text/html"));
 
 app.MapPost("/broadcast", async (HttpContext context, IHubContext<CommandHub> hubContext) =>
 {
@@ -81,6 +83,32 @@ app.MapGet("/clients", () =>
     });
 });
 
+app.MapGet("/performance", () =>
+{
+    var performanceData = CommandHub.PerformanceStats
+        .Select(kvp => new
+        {
+            connectionId = kvp.Key,
+            computerName = CommandHub.ConnectedClients.ContainsKey(kvp.Key) 
+                ? CommandHub.ConnectedClients[kvp.Key] 
+                : "Desconhecido",
+            cpuUsage = kvp.Value.CpuUsagePercent,
+            ramUsage = kvp.Value.RamUsagePercent,
+            ramUsed = kvp.Value.RamUsedMB,
+            ramTotal = kvp.Value.RamTotalMB,
+            lastUpdate = kvp.Value.LastUpdate
+        })
+        .OrderBy(x => x.computerName)
+        .ToList();
+
+    return Results.Ok(new
+    {
+        success = true,
+        count = performanceData.Count,
+        clients = performanceData
+    });
+});
+
 app.MapGet("/status", () =>
 {
     return Results.Ok(new
@@ -94,7 +122,8 @@ app.MapGet("/status", () =>
 Console.Clear();
 Console.WriteLine("AXII DESKTOP");
 Console.WriteLine($"Acesse: http://{GetLocalIPAddress()}:5000");
-Console.WriteLine("Interface: http://localhost:5000║");
+Console.WriteLine("Interface: http://localhost:5000");
+Console.WriteLine("Monitor: http://localhost:5000/monitor");
 Console.WriteLine();
 
 app.Run("http://0.0.0.0:5000");
@@ -114,7 +143,8 @@ string GetLocalIPAddress()
 
 public class CommandHub : Hub
 {
-    public static Dictionary<string, string> ConnectedClients = new Dictionary<string, string>();
+    public static ConcurrentDictionary<string, string> ConnectedClients = new();
+    public static ConcurrentDictionary<string, PerformanceInfo> PerformanceStats = new();
 
     public override async Task OnConnectedAsync()
     {
@@ -131,9 +161,9 @@ public class CommandHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {
-        if (ConnectedClients.TryGetValue(Context.ConnectionId, out string computerName))
+        if (ConnectedClients.TryRemove(Context.ConnectionId, out string computerName))
         {
-            ConnectedClients.Remove(Context.ConnectionId);
+            PerformanceStats.TryRemove(Context.ConnectionId, out _);
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cliente desconectado: {computerName}");
@@ -143,4 +173,30 @@ public class CommandHub : Hub
 
         await base.OnDisconnectedAsync(exception);
     }
+
+    public async Task UpdatePerformanceStats(double cpuUsage, double ramUsagePercent, double ramUsedMB, double ramTotalMB)
+    {
+        var perfInfo = new PerformanceInfo
+        {
+            CpuUsagePercent = cpuUsage,
+            RamUsagePercent = ramUsagePercent,
+            RamUsedMB = ramUsedMB,
+            RamTotalMB = ramTotalMB,
+            LastUpdate = DateTime.Now
+        };
+
+        PerformanceStats[Context.ConnectionId] = perfInfo;
+
+        // Notificar todos os clientes conectados ao monitor
+        await Clients.All.SendAsync("PerformanceUpdate", Context.ConnectionId, perfInfo);
+    }
+}
+
+public class PerformanceInfo
+{
+    public double CpuUsagePercent { get; set; }
+    public double RamUsagePercent { get; set; }
+    public double RamUsedMB { get; set; }
+    public double RamTotalMB { get; set; }
+    public DateTime LastUpdate { get; set; }
 }
