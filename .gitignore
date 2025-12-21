@@ -389,7 +389,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-*.iss
 
 # JetBrains Rider
 *.sln.iml
