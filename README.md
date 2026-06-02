@@ -1,331 +1,257 @@
-# Axii Desktop - Remote PC Control System
-
 <div align="center">
-  <img src="img/white-logo.ico" alt="Axii Logo" width="120"/>
-  
-  **A powerful and modern remote PC control system built with .NET 9 and SignalR**
-  
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-  [![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](https://dotnet.microsoft.com/)
-  [![SignalR](https://img.shields.io/badge/SignalR-Real--time-green.svg)](https://dotnet.microsoft.com/apps/aspnet/signalr)
+
+<img src="https://lfcostldktmoevensqdj.supabase.co/storage/v1/object/public/axii/white-logo.svg" alt="AXII Logo" width="120" />
+
+# AXII — Aplicativo Desktop
+
+**Componente desktop do sistema AXII para automação de salas de aula, desenvolvido como Trabalho de Conclusão de Curso do Curso Técnico em Informática da ETEC de Mauá.**
+
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-12-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
+[![Windows](https://img.shields.io/badge/Windows-suportado-0078D4?logo=windows&logoColor=white)](https://microsoft.com/windows)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-9.0-512BD4)](https://learn.microsoft.com/aspnet/core/)
+[![SignalR](https://img.shields.io/badge/SignalR-tempo_real-512BD4)](https://learn.microsoft.com/aspnet/core/signalr/)
+[![Licença MIT](https://img.shields.io/badge/licença-MIT-blue)](LICENSE)
+
 </div>
 
 ---
 
-## 📋 Overview
+## Sobre o Projeto
 
-Axii Desktop is a client-server application that enables remote control and command execution on multiple Windows PCs simultaneously through an intuitive web interface. It uses real-time communication via SignalR to execute commands remotely, making it perfect for labs, classrooms, or managing multiple computers.
+O **AXII Desktop** é o componente que conecta o sistema AXII diretamente aos computadores das salas de aula. Ele é composto por **dois programas distintos**:
 
-### ✨ Key Features
+| Programa | Para quem? | O que faz? |
+|---|---|---|
+| **AxiiServer** | Professor / Administrador | Servidor de controle com painel web para enviar comandos a todas as máquinas da sala |
+| **AxiiClient** | Alunos / Máquinas da sala | Cliente executor instalado em cada PC; recebe e executa os comandos do servidor |
 
-- 🌐 **Web-based Control Panel** - Modern React interface with beautiful gradients and animations
-- 🚀 **Real-time Communication** - Instant command execution using SignalR WebSockets
-- 💻 **Multi-PC Support** - Control multiple computers simultaneously
-- 🔄 **Auto-reconnect** - Automatic reconnection with exponential backoff
-- 📊 **Live Status Monitoring** - Track connected clients and command execution in real-time
-- 🎨 **Beautiful UI** - Modern design with Tailwind CSS and smooth animations
-- ♿ **Accessibility** - VLibras integration for Brazilian Sign Language
+A comunicação entre os dois é feita via **SignalR (WebSocket)**, garantindo entrega de comandos em tempo real e sincronização instantânea.
 
-### 🎯 Supported Actions
-
-- **Notepad** - Open Windows Notepad
-- **Date/Time** - Display system date and time information
-- **File Creation** - Create a timestamped text file
-- **VS Code** - Launch Visual Studio Code
-- **Visual Studio** - Launch Visual Studio IDE
-- **Laragon** - Start Laragon development environment
-- **Packet Tracer** - Launch Cisco Packet Tracer
-- **Ngrok** - Start ngrok tunnel on port 5000
+O sistema AXII completo é composto por:
+- **Desktop** (este repositório) — controle direto dos computadores da sala
+- **Web** — painel de controle via navegador
+- **Mobile** — controle e monitoramento pelo celular
 
 ---
 
-## 🏗️ Architecture
-
-The system consists of two main components:
-
-### 1. AxiiServer (ASP.NET Core Web Application)
-- Hosts the web-based control panel
-- Manages SignalR hub for real-time communication
-- Tracks connected clients
-- Broadcasts commands to all connected clients
-- Runs on port 5000
-
-### 2. AxiiClient (Console Application)
-- Connects to the AxiiServer via SignalR
-- Listens for commands from the server
-- Executes commands locally using batch scripts
-- Reports execution status back to the server
-- Auto-reconnects on connection loss
+## Arquitetura
 
 ```
-┌─────────────────┐
-│  Web Browser    │
-│  (Control UI)   │
-└────────┬────────┘
-         │ HTTP
-         ▼
-┌─────────────────┐      SignalR      ┌─────────────────┐
-│  AxiiServer     │◄─────────────────►│  AxiiClient     │
-│  (Hub/Web API)  │                    │  (PC 1)         │
-└─────────────────┘                    └─────────────────┘
-         │                              ┌─────────────────┐
-         └─────────────────────────────►│  AxiiClient     │
-                  SignalR                │  (PC 2)         │
-                                        └─────────────────┘
-                                        ┌─────────────────┐
-                                        │  AxiiClient     │
-                                        │  (PC N)         │
-                                        └─────────────────┘
+┌───────────────────────────────────────────────┐
+│            AxiiServer (Professor)              │
+│  ┌─────────────────────────────────────────┐  │
+│  │  Interface Web (React + Tailwind CSS)   │  │
+│  │  → Painel de controle (localhost:5000)  │  │
+│  │  → Monitor de performance (/monitor)    │  │
+│  └────────────────┬────────────────────────┘  │
+│                   │  REST + SignalR Hub        │
+└───────────────────┼───────────────────────────┘
+                    │  WebSocket (SignalR)
+        ┌───────────┼───────────┐
+        ↓           ↓           ↓
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│AxiiClient│ │AxiiClient│ │AxiiClient│
+│   PC 1   │ │   PC 2   │ │   PC N   │
+└──────────┘ └──────────┘ └──────────┘
+  (Alunos)     (Alunos)     (Alunos)
 ```
 
 ---
 
-## 🚀 Getting Started
+## Funcionalidades
 
-### Prerequisites
+### AxiiServer — Servidor de Controle
 
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) or later
-- Windows OS (for client execution)
-- Visual Studio 2022 or VS Code (optional, for development)
+**Painel Web** (`http://localhost:5000`):
+- Interface React exibindo todos os computadores conectados em tempo real
+- Envio de comandos simultâneos para **todos os PCs da sala** com um clique
+- Log de execução em tempo real com registro de cada ação (sucesso, erro, aviso)
+- Indicador ao vivo de quantos computadores estão conectados
+- Acessibilidade integrada via **VLibras** (Língua Brasileira de Sinais)
 
-### Installation
+**Monitor de Performance** (`http://localhost:5000/monitor`):
+- Monitoramento em tempo real de **CPU** e **RAM** de cada computador conectado
+- Barras de progresso por máquina, atualizadas a cada 2 segundos via SignalR
+- Identificação de cada PC pelo nome da máquina (`COMPUTERNAME`)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Project-axii/Project-axii-desktop.git
-   cd Project-axii-desktop
-   ```
+**API REST:**
 
-2. **Build the solution**
-   ```bash
-   dotnet build Project-axii-desktop.sln
-   ```
-
-### Running the System
-
-#### Step 1: Start the Server
-
-Navigate to the server directory and run:
-
-```bash
-cd AxiiServer
-dotnet run
-```
-
-The server will start on `http://0.0.0.0:5000`. You should see output similar to:
-
-```
-AXII DESKTOP
-Acesse: http://192.168.1.100:5000
-Interface: http://localhost:5000
-```
-
-Open your browser and navigate to `http://localhost:5000` to access the control panel.
-
-#### Step 2: Start Clients on Target PCs
-
-On each PC you want to control, navigate to the client directory and run:
-
-```bash
-cd AxiiClient
-dotnet run
-```
-
-The client will prompt you for the server configuration URL. You can:
-- Press Enter to use the default configuration from GitHub
-- Enter a custom JSON configuration URL
-
-Once connected, you'll see:
-```
-CONECTADO COM SUCESSO!
-Status: Aguardando comandos...
-```
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/broadcast` | Envia um comando para todos os clientes conectados |
+| `GET` | `/clients` | Lista todos os computadores conectados |
+| `GET` | `/performance` | Retorna dados de CPU/RAM de cada cliente |
+| `GET` | `/status` | Status do servidor (online/offline, total de clientes) |
+| `GET` | `/` | Painel de controle (HTML) |
+| `GET` | `/monitor` | Monitor de performance (HTML) |
 
 ---
 
-## 📖 Usage
+### AxiiClient — Cliente Executor
 
-### Web Control Panel
+Aplicação **Windows Forms** instalada em cada PC da sala. Ao receber um comando do servidor, executa o script `.bat` correspondente localmente.
 
-1. Open the web interface at `http://localhost:5000`
-2. Check the status bar to see connected clients
-3. Click on any application card to execute it on all connected PCs
-4. Monitor execution logs in the log panel
-5. Use "Clear Logs" to clean the log view
-6. Use "Update Status" to refresh connection information
+**Comandos disponíveis:**
 
-### Configuration via JSON
+| Comando | Aplicativo | Ação executada |
+|---|---|---|
+| `notepad` | Bloco de Notas | Abre o `notepad.exe` |
+| `datetime` | Data e Hora | Exibe data, hora, usuário e nome do PC em console |
+| `file` | Criar Arquivo | Cria `created_file.txt` com informações do sistema |
+| `vscode` | VS Code | Executa `code` (VS Code no PATH) |
+| `visualstudio` | Visual Studio | Executa `devenv` (Visual Studio) |
+| `laragon` | Laragon | Abre `C:\laragon\laragon.exe` |
+| `packettracer` | Packet Tracer | Abre o Cisco Packet Tracer (busca em múltiplos caminhos) |
+| `ngrok` | Ngrok | Inicia `ngrok http 5000` no terminal |
 
-The client can fetch server configuration from a JSON file (default: GitHub repository). The JSON should have this format:
+**Modos de conexão ao servidor:**
 
-```json
-{
-  "status": "success",
-  "link": "http://your-server-url:5000"
-}
-```
+| Opção | Descrição |
+|---|---|
+| 🔗 **URL do GitHub** | Lê a URL do servidor em `sistema_desk.json` (gateway do projeto no GitHub) |
+| ⚙️ **Configuração Padrão** | Usa uma URL salva anteriormente em `axii_default_config.txt` |
+| 🌐 **URL Personalizada** | Permite digitar qualquer URL manualmente |
+| ⚙️ **Definir URL Padrão** | Salva uma URL como padrão para uso futuro |
 
-### Using with ngrok
-
-To expose the server over the internet:
-
-1. Run the server: `dotnet run` (in AxiiServer)
-2. In another terminal: `ngrok http 5000`
-3. Update your configuration JSON with the ngrok URL
-4. Clients can now connect from anywhere
+**Monitoramento local:**
+- Exibe uso de **CPU** e **RAM** em tempo real na janela do cliente
+- Envia os dados de performance ao servidor a cada 2 segundos
+- Suporte a **reconexão automática** com tentativas em 0s, 2s, 5s e 10s
 
 ---
 
-## 🛠️ Development
+## Tecnologias
 
-### Project Structure
+### AxiiServer
+
+| Tecnologia | Versão | Uso |
+|---|---|---|
+| [ASP.NET Core](https://learn.microsoft.com/aspnet/core/) | .NET 9 | Servidor HTTP e roteamento |
+| [SignalR](https://learn.microsoft.com/aspnet/core/signalr/) | 1.2.0 | Comunicação em tempo real via WebSocket |
+| [React](https://react.dev/) | 18 (CDN) | Interface web do painel de controle |
+| [Tailwind CSS](https://tailwindcss.com/) | CDN | Estilização da interface web |
+
+### AxiiClient
+
+| Tecnologia | Versão | Uso |
+|---|---|---|
+| [Windows Forms](https://learn.microsoft.com/dotnet/desktop/winforms/) | .NET 9 | Interface gráfica do cliente |
+| [SignalR Client](https://www.nuget.org/packages/Microsoft.AspNetCore.SignalR.Client/) | 10.0.0 | Conexão com o servidor em tempo real |
+| [System.Management](https://www.nuget.org/packages/System.Management/) | 10.0.1 | Leitura de dados de CPU e RAM via WMI |
+
+---
+
+## Estrutura do Projeto
 
 ```
 Project-axii-desktop/
-├── AxiiServer/              # Server application
-│   ├── Program.cs           # Server entry point and SignalR hub
-│   ├── index.html           # Web control panel UI
-│   ├── appsettings.json     # Server configuration
-│   └── AxiiServer.csproj    # Server project file
-├── AxiiClient/              # Client application
-│   ├── Program.cs           # Client entry point
-│   └── AxiiClient.csproj    # Client project file
-├── img/                     # Images and logos
-├── Project-axii-desktop.sln # Visual Studio solution
-├── LICENSE                  # MIT License
-└── README.md               # This file
+├── Project-axii-desktop.sln      # Solução com os dois projetos
+│
+├── AxiiServer/                    # Servidor de controle (ASP.NET Core)
+│   ├── Program.cs                 # Hub SignalR + endpoints REST
+│   ├── index.html                 # Painel web (React + Tailwind)
+│   ├── monitor.html               # Monitor de performance em tempo real
+│   ├── appsettings.json           # Configurações do servidor
+│   ├── AxiiServer.csproj
+│   └── AxiiServer.sln
+│
+├── AxiiClient/                    # Cliente executor (Windows Forms)
+│   ├── Program.cs                 # Interface WinForms + cliente SignalR
+│   ├── AxiiClient.csproj
+│   └── AxiiClient.sln
+│
+└── inno scripts/                  # Scripts do instalador (Inno Setup)
+    ├── script AxiiServer.iss      # Instalador do servidor (v1.0.3)
+    └── script AxiiClient.iss      # Instalador do cliente
 ```
 
-### Technologies Used
+---
 
-- **.NET 9.0** - Core framework
-- **ASP.NET Core** - Web server framework
-- **SignalR** - Real-time communication
-- **React 18** - UI framework
-- **Tailwind CSS** - Styling framework
-- **VLibras** - Brazilian Sign Language accessibility
+## Como rodar localmente
 
-### Building from Source
+### Pré-requisitos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9) instalado
+- Windows (obrigatório para o AxiiClient — Windows Forms)
+- Os PCs do servidor e dos clientes precisam estar na mesma rede
+
+---
+
+### Executar o AxiiServer (computador do professor)
 
 ```bash
-# Build entire solution
-dotnet build
+# Clone o repositório
+git clone https://github.com/Project-axii/Project-axii-desktop.git
+cd Project-axii-desktop/AxiiServer
 
-# Build in Release mode
-dotnet build -c Release
+# Restaurar dependências e executar
+dotnet run
+```
 
-# Run tests (if available)
-dotnet test
+O servidor estará disponível em:
+- **Painel de controle:** `http://localhost:5000`
+- **Monitor de performance:** `http://localhost:5000/monitor`
+- **IP da rede local:** exibido no console ao iniciar (ex: `http://192.168.1.100:5000`)
+
+---
+
+### Executar o AxiiClient (computadores dos alunos)
+
+```bash
+cd Project-axii-desktop/AxiiClient
+
+# Restaurar dependências e executar
+dotnet run
+```
+
+Na janela que abrir, escolha o modo de conexão:
+1. **Usar URL do GitHub** — recomendado se o gateway estiver configurado
+2. **Digitar URL Personalizada** — informe o endereço IP do servidor (ex: `http://192.168.1.100:5000`)
+
+---
+
+### Build de produção
+
+```bash
+# Publicar o AxiiServer
+cd AxiiServer
+dotnet publish -c Release -r win-x64 --self-contained
+
+# Publicar o AxiiClient
+cd AxiiClient
+dotnet publish -c Release -r win-x64 --self-contained
 ```
 
 ---
 
-## 🔧 Configuration
+## Instaladores
 
-### Server Configuration
+O projeto inclui scripts para geração de instaladores `.exe` usando o **Inno Setup** (somente Windows):
 
-Edit `AxiiServer/appsettings.json` to customize server settings:
+| Instalador | Versão | Descrição |
+|---|---|---|
+| `instalador AxiiServer.exe` | 1.0.3 | Instala o servidor no computador do professor |
+| `instalador AxiiClient.exe` | — | Instala o cliente nos computadores dos alunos |
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-```
+Para gerar os instaladores, abra os arquivos `.iss` na pasta `inno scripts/` com o [Inno Setup Compiler](https://jrsoftware.org/isinfo.php) e compile.
 
-### Client Configuration
-
-The client automatically connects to the server URL specified in the configuration JSON. No additional configuration is required.
+> Os instaladores são gerados para **Windows 64-bit** (x64 e Windows 11 ARM).
 
 ---
 
-## 🐛 Troubleshooting
+## Descoberta automática do servidor
 
-### Server won't start
-- **Problem**: Port 5000 already in use
-- **Solution**: Stop other applications using port 5000 or change the port in `Program.cs`
-
-### Client can't connect
-- **Problem**: Connection refused or timeout
-- **Solution**: 
-  - Verify the server is running
-  - Check firewall settings allow connections on port 5000
-  - Ensure the configuration JSON URL is correct and accessible
-  - Verify network connectivity between client and server
-
-### Commands not executing
-- **Problem**: No clients connected
-- **Solution**: Start at least one client and verify it connects successfully
-
-### Application not launching
-- **Problem**: Application not found on client PC
-- **Solution**: Install the required application (VS Code, Visual Studio, etc.) or customize the batch script in `AxiiClient/Program.cs`
-
----
-
-## 🔒 Security Considerations
-
-- This system is designed for trusted networks (labs, classrooms)
-- No authentication is implemented by default
-- Commands are executed with the privileges of the user running the client
-- Be cautious when exposing the server to the internet
-- Consider implementing authentication and encryption for production use
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+O AxiiClient descobre o endereço do servidor via um arquivo JSON hospedado no repositório gateway do projeto:
 
 ```
-MIT License
-
-Copyright (c) 2025 AXII
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
+https://raw.githubusercontent.com/Project-axii/Project-axii-gateway/refs/heads/main/sistema_desk.json
 ```
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Esse arquivo retorna o IP atual do servidor em tempo de execução, eliminando a necessidade de configuração manual em cada máquina.
 
 ---
 
-## 📧 Support
+## 📄 Licença
 
-For support, questions, or feedback:
-- Open an issue on [GitHub Issues](https://github.com/Project-axii/Project-axii-desktop/issues)
-- Check existing issues for solutions
-- Review the troubleshooting section above
-
----
-
-## 🎓 Educational Purpose
-
-This project was created for educational purposes to demonstrate:
-- Real-time client-server communication with SignalR
-- Cross-platform .NET development
-- Modern web UI development with React
-- Remote system administration concepts
-
----
-
-<div align="center">
-  <p>Made with ❤️ by the AXII Team</p>
-  <p>© 2025 AXII. All rights reserved.</p>
-</div>
+Este projeto está licenciado sob a [Licença MIT](LICENSE).
