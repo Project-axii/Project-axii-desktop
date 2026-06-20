@@ -4,463 +4,670 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Axii Desktop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"></script>
     <style>
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-            100% {
-                transform: rotate(360deg);
-            }
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --surface-2: #181818;
+            --border: rgba(255,255,255,0.08);
+            --border-strong: rgba(255,255,255,0.14);
+            --text-primary: #f0f0f0;
+            --text-secondary: #888;
+            --text-muted: #444;
+            --accent: #4f8ef7;
+            --accent-dim: rgba(79,142,247,0.12);
+            --green: #36c77a;
+            --green-dim: rgba(54,199,122,0.12);
+            --red: #e05c5c;
+            --red-dim: rgba(224,92,92,0.12);
+            --amber: #e09c4f;
+            --amber-dim: rgba(224,156,79,0.10);
+            --mono: 'IBM Plex Mono', monospace;
+            --sans: 'Inter', system-ui, sans-serif;
         }
 
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.8;
-                transform: scale(1.05);
-            }
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        #root {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
         }
 
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-            }
-
-            50% {
-                box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
-            }
+        /* --- Header --- */
+        .header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+            gap: 24px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
+
+        .logo-mark {
+            width: 40px;
+            height: 40px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-mark img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.85;
+        }
+
+        .logo-text h1 {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* --- Status pill --- */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            white-space: nowrap;
+            transition: border-color 0.2s;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-pill.online { border-color: rgba(54,199,122,0.3); background: var(--green-dim); }
+        .status-pill.online .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .status-pill.offline { border-color: rgba(224,92,92,0.3); background: var(--red-dim); }
+        .status-pill.offline .status-dot { background: var(--red); }
+        .status-pill.online .status-label { color: var(--green); }
+        .status-pill.offline .status-label { color: var(--red); }
+
+        /* --- Meta bar --- */
+        .meta-bar {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .meta-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .meta-stat .num {
+            font-family: var(--mono);
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .meta-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .meta-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+        }
+
+        .send-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--accent);
+            font-family: var(--mono);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .send-indicator.visible { opacity: 1; }
 
         .spinner {
-            animation: spin 1s linear infinite;
+            width: 12px;
+            height: 12px;
+            border: 1.5px solid rgba(79,142,247,0.3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
         }
 
-        .pulse-anim {
-            animation: pulse 2s infinite;
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Section label --- */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
         }
 
-        .slide-in {
-            animation: slideIn 0.3s ease;
-        }
-
-        .glow-effect {
-            animation: glow 2s infinite;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .log-scroll::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .log-scroll::-webkit-scrollbar-track {
-            background: #0f172a;
-            border-radius: 5px;
-        }
-
-        .log-scroll::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-            border-radius: 5px;
-        }
-
-            .log-scroll::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, #2563eb, #7c3aed);
-            }
-
-        .glass-effect {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .app-card {
-            position: relative;
+        /* --- App grid --- */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
+            margin-bottom: 40px;
         }
 
-            .app-card::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                opacity: 0;
-                transition: opacity 0.3s;
-            }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+        .app-btn {
+            background: var(--surface);
+            border: none;
+            cursor: pointer;
+            padding: 20px;
+            text-align: left;
+            transition: background 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
         }
 
-        .gradient-border {
-            border: 2px solid transparent;
-            background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899) border-box;
+        .app-btn:hover:not(:disabled) {
+            background: var(--surface-2);
+        }
+
+        .app-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .app-btn:active:not(:disabled) {
+            background: #1f1f1f;
+        }
+
+        .app-icon {
+            width: 32px;
+            height: 32px;
+            color: var(--text-secondary);
+            transition: color 0.15s;
+        }
+
+        .app-btn:hover:not(:disabled) .app-icon {
+            color: var(--text-primary);
+        }
+
+        .app-info {}
+
+        .app-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .app-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .app-action {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: var(--mono);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .app-action::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.6;
+        }
+
+        /* --- Log --- */
+        .log-section {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .log-count {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .log-body {
+            height: 260px;
+            overflow-y: auto;
+            padding: 12px 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--surface-2) transparent;
+        }
+
+        .log-body::-webkit-scrollbar { width: 4px; }
+        .log-body::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 2px; }
+
+        .log-empty {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .log-empty-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 6px 20px;
+            font-family: var(--mono);
+            font-size: 12px;
+            animation: fadeSlide 0.2s ease;
+        }
+
+        .log-entry:hover { background: var(--surface-2); }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .log-time { color: var(--text-muted); flex-shrink: 0; }
+
+        .log-badge {
+            flex-shrink: 0;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+        }
+
+        .log-badge.success { background: var(--green-dim); color: var(--green); }
+        .log-badge.error { background: var(--red-dim); color: var(--red); }
+        .log-badge.warning { background: var(--amber-dim); color: var(--amber); }
+        .log-badge.info { background: var(--accent-dim); color: var(--accent); }
+
+        .log-msg { color: var(--text-secondary); flex: 1; line-height: 1.5; }
+
+        .log-footer {
+            display: flex;
+            gap: 1px;
+            border-top: 1px solid var(--border);
+            background: var(--border);
+        }
+
+        .log-action-btn {
+            flex: 1;
+            background: var(--surface);
+            border: none;
+            cursor: pointer;
+            padding: 12px 20px;
+            font-family: var(--sans);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: background 0.15s, color 0.15s;
+            text-align: center;
+        }
+
+        .log-action-btn:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        /* --- Footer --- */
+        .page-footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-note {
+            font-size: 11px;
+            font-family: var(--mono);
+            color: var(--text-muted);
+        }
+
+        .footer-version {
+            font-size: 11px;
+            font-family: var(--mono);
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 640px) {
+            .app-grid { grid-template-columns: 1fr 1fr; }
+            .meta-bar { flex-wrap: wrap; }
+            .header { flex-direction: column; gap: 16px; }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950 min-h-screen p-4 overflow-x-hidden">
+<body>
 
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -top-48 -left-48 animate-pulse"></div>
-        <div class="absolute w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -bottom-48 -right-48 animate-pulse" style="animation-delay: 1s;"></div>
-    </div>
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
 
-    <div id="root"></div>
+<div id="root"></div>
 
-    <div vw class="enabled">
-      <div vw-access-button class="active"></div>
-      <div vw-plugin-wrapper>
-        <div class="vw-plugin-top-wrapper"></div>
-      </div>
-    </div>
-    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-    <script>
-      new window.VLibras.Widget('https://vlibras.gov.br/app');
-    </script>
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-        const apps = [
-            { id: 'notepad', name: 'Bloco de Notas', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M336 496L160 496C151.2 496 144 488.8 144 480L144 160C144 151.2 151.2 144 160 144L480 144C488.8 144 496 151.2 496 160L496 336L408 336C368.2 336 336 368.2 336 408L336 496zM476.1 384L384 476.1L384 408C384 394.7 394.7 384 408 384L476.1 384zM96 480C96 515.3 124.7 544 160 544L357.5 544C374.5 544 390.8 537.3 402.8 525.3L525.3 402.7C537.3 390.7 544 374.4 544 357.4L544 160C544 124.7 515.3 96 480 96L160 96C124.7 96 96 124.7 96 160L96 480z"/></svg>', color: 'from-blue-500 to-cyan-500', desc: 'Editor de texto simples' },
-            { id: 'datetime', name: 'Data e Hora', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"/></svg>', color: 'from-emerald-500 to-teal-500', desc: 'Visualizar data e hora atual' },
-            { id: 'file', name: 'Criar Arquivo', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M320 232C333.3 232 344 242.7 344 256L344 344L432 344C445.3 344 456 354.7 456 368C456 381.3 445.3 392 432 392L344 392L344 480C344 493.3 333.3 504 320 504C306.7 504 296 493.3 296 480L296 392L208 392C194.7 392 184 381.3 184 368C184 354.7 194.7 344 208 344L296 344L296 256C296 242.7 306.7 232 320 232z"/></svg>', color: 'from-pink-500 to-rose-500', desc: 'Criar novo arquivo' },
-            { id: 'vscode', name: 'VS Code', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M380.8 96C372.7 110.1 368 126.5 368 144L368 160L96 160L96 384L368 384L368 448L96 448C60.7 448 32 419.3 32 384L32 160C32 124.7 60.7 96 96 96L380.8 96zM368 496C368 513.5 372.7 529.9 380.8 544L152 544C138.7 544 128 533.3 128 520C128 506.7 138.7 496 152 496L368 496zM464 96L560 96C586.5 96 608 117.5 608 144L608 496C608 522.5 586.5 544 560 544L464 544C437.5 544 416 522.5 416 496L416 144C416 117.5 437.5 96 464 96zM488 160C474.7 160 464 170.7 464 184C464 197.3 474.7 208 488 208L536 208C549.3 208 560 197.3 560 184C560 170.7 549.3 160 536 160L488 160zM488 256C474.7 256 464 266.7 464 280C464 293.3 474.7 304 488 304L536 304C549.3 304 560 293.3 560 280C560 266.7 549.3 256 536 256L488 256zM544 400C544 382.3 529.7 368 512 368C494.3 368 480 382.3 480 400C480 417.7 494.3 432 512 432C529.7 432 544 417.7 544 400z"/></svg>', color: 'from-sky-500 to-blue-500', desc: 'IDE para desenvolvimento' },
-            { id: 'visualstudio', name: 'Visual Studio', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M81 279L279 81C289.9 70.1 304.6 64 320 64C335.4 64 350.1 70.1 361 81L559 279C569.9 289.9 576 304.6 576 320C576 335.4 569.9 350.1 559 361L361 559C350.1 569.9 335.4 576 320 576C304.6 576 289.9 569.9 279 559L81 361C70.1 350.1 64 335.4 64 320C64 304.6 70.1 289.9 81 279z"/></svg>', color: 'from-violet-500 to-purple-500', desc: 'IDE profissional Microsoft' },
-            { id: 'laragon', name: 'Laragon', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M192 384L88.5 384C63.6 384 48.3 356.9 61.1 335.5L114 247.3C122.7 232.8 138.3 224 155.2 224L250.2 224C326.3 95.1 439.8 88.6 515.7 99.7C528.5 101.6 538.5 111.6 540.3 124.3C551.4 200.2 544.9 313.7 416 389.8L416 484.8C416 501.7 407.2 517.3 392.7 526L304.5 578.9C283.2 591.7 256 576.3 256 551.5L256 448C256 412.7 227.3 384 192 384L191.9 384zM464 224C464 197.5 442.5 176 416 176C389.5 176 368 197.5 368 224C368 250.5 389.5 272 416 272C442.5 272 464 250.5 464 224z"/></svg>', color: 'from-orange-500 to-amber-500', desc: 'Ambiente de desenvolvimento local' },
-            { id: 'packettracer', name: 'Packet Tracer', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M415.9 344L225 344C227.9 408.5 242.2 467.9 262.5 511.4C273.9 535.9 286.2 553.2 297.6 563.8C308.8 574.3 316.5 576 320.5 576C324.5 576 332.2 574.3 343.4 563.8C354.8 553.2 367.1 535.8 378.5 511.4C398.8 467.9 413.1 408.5 416 344zM224.9 296L415.8 296C413 231.5 398.7 172.1 378.4 128.6C367 104.2 354.7 86.8 343.3 76.2C332.1 65.7 324.4 64 320.4 64C316.4 64 308.7 65.7 297.5 76.2C286.1 86.8 273.8 104.2 262.4 128.6C242.1 172.1 227.8 231.5 224.9 296zM176.9 296C180.4 210.4 202.5 130.9 234.8 78.7C142.7 111.3 74.9 195.2 65.5 296L176.9 296zM65.5 344C74.9 444.8 142.7 528.7 234.8 561.3C202.5 509.1 180.4 429.6 176.9 344L65.5 344zM463.9 344C460.4 429.6 438.3 509.1 406 561.3C498.1 528.6 565.9 444.8 575.3 344L463.9 344zM575.3 296C565.9 195.2 498.1 111.3 406 78.7C438.3 130.9 460.4 210.4 463.9 296L575.3 296z"/></svg>', color: 'from-cyan-500 to-teal-500', desc: 'Simulador de redes Cisco' },
-            { id: 'ngrok', name: 'Ngrok', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M288.6 76.8C344.8 20.6 436 20.6 492.2 76.8C548.4 133 548.4 224.2 492.2 280.4L328.2 444.4C293.8 478.8 238.1 478.8 203.7 444.4C169.3 410 169.3 354.3 203.7 319.9L356.5 167.3C369 154.8 389.3 154.8 401.8 167.3C414.3 179.8 414.3 200.1 401.8 212.6L249 365.3C239.6 374.7 239.6 389.9 249 399.2C258.4 408.5 273.6 408.6 282.9 399.2L446.9 235.2C478.1 204 478.1 153.3 446.9 122.1C415.7 90.9 365 90.9 333.8 122.1L169.8 286.1C116.7 339.2 116.7 425.3 169.8 478.4C222.9 531.5 309 531.5 362.1 478.4L492.3 348.3C504.8 335.8 525.1 335.8 537.6 348.3C550.1 360.8 550.1 381.1 537.6 393.6L407.4 523.6C329.3 601.7 202.7 601.7 124.6 523.6C46.5 445.5 46.5 318.9 124.6 240.8L288.6 76.8z"/></svg>', color: 'from-indigo-500 to-blue-500', desc: 'Túnel seguro para localhost' },
-        ];
+const apps = [
+    {
+        id: 'notepad', name: 'Bloco de Notas', desc: 'Editor de texto',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M336 496L160 496C151.2 496 144 488.8 144 480L144 160C144 151.2 151.2 144 160 144L480 144C488.8 144 496 151.2 496 160L496 336L408 336C368.2 336 336 368.2 336 408L336 496zM476.1 384L384 476.1L384 408C384 394.7 394.7 384 408 384L476.1 384zM96 480C96 515.3 124.7 544 160 544L357.5 544C374.5 544 390.8 537.3 402.8 525.3L525.3 402.7C537.3 390.7 544 374.4 544 357.4L544 160C544 124.7 515.3 96 480 96L160 96C124.7 96 96 124.7 96 160L96 480z"/></svg>`
+    },
+    {
+        id: 'datetime', name: 'Data e Hora', desc: 'Relógio do sistema',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"/></svg>`
+    },
+    {
+        id: 'file', name: 'Criar Arquivo', desc: 'Novo documento',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M320 232C333.3 232 344 242.7 344 256L344 344L432 344C445.3 344 456 354.7 456 368C456 381.3 445.3 392 432 392L344 392L344 480C344 493.3 333.3 504 320 504C306.7 504 296 493.3 296 480L296 392L208 392C194.7 392 184 381.3 184 368C184 354.7 194.7 344 208 344L296 344L296 256C296 242.7 306.7 232 320 232z"/></svg>`
+    },
+    {
+        id: 'vscode', name: 'VS Code', desc: 'Editor de código',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M380.8 96C372.7 110.1 368 126.5 368 144L368 160L96 160L96 384L368 384L368 448L96 448C60.7 448 32 419.3 32 384L32 160C32 124.7 60.7 96 96 96L380.8 96zM368 496C368 513.5 372.7 529.9 380.8 544L152 544C138.7 544 128 533.3 128 520C128 506.7 138.7 496 152 496L368 496zM464 96L560 96C586.5 96 608 117.5 608 144L608 496C608 522.5 586.5 544 560 544L464 544C437.5 544 416 522.5 416 496L416 144C416 117.5 437.5 96 464 96zM488 160C474.7 160 464 170.7 464 184C464 197.3 474.7 208 488 208L536 208C549.3 208 560 197.3 560 184C560 170.7 549.3 160 536 160L488 160zM488 256C474.7 256 464 266.7 464 280C464 293.3 474.7 304 488 304L536 304C549.3 304 560 293.3 560 280C560 266.7 549.3 256 536 256L488 256zM544 400C544 382.3 529.7 368 512 368C494.3 368 480 382.3 480 400C480 417.7 494.3 432 512 432C529.7 432 544 417.7 544 400z"/></svg>`
+    },
+    {
+        id: 'visualstudio', name: 'Visual Studio', desc: 'IDE Microsoft',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M81 279L279 81C289.9 70.1 304.6 64 320 64C335.4 64 350.1 70.1 361 81L559 279C569.9 289.9 576 304.6 576 320C576 335.4 569.9 350.1 559 361L361 559C350.1 569.9 335.4 576 320 576C304.6 576 289.9 569.9 279 559L81 361C70.1 350.1 64 335.4 64 320C64 304.6 70.1 289.9 81 279z"/></svg>`
+    },
+    {
+        id: 'laragon', name: 'Laragon', desc: 'Servidor local',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M192 384L88.5 384C63.6 384 48.3 356.9 61.1 335.5L114 247.3C122.7 232.8 138.3 224 155.2 224L250.2 224C326.3 95.1 439.8 88.6 515.7 99.7C528.5 101.6 538.5 111.6 540.3 124.3C551.4 200.2 544.9 313.7 416 389.8L416 484.8C416 501.7 407.2 517.3 392.7 526L304.5 578.9C283.2 591.7 256 576.3 256 551.5L256 448C256 412.7 227.3 384 192 384L191.9 384zM464 224C464 197.5 442.5 176 416 176C389.5 176 368 197.5 368 224C368 250.5 389.5 272 416 272C442.5 272 464 250.5 464 224z"/></svg>`
+    },
+    {
+        id: 'packettracer', name: 'Packet Tracer', desc: 'Simulador Cisco',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M415.9 344L225 344C227.9 408.5 242.2 467.9 262.5 511.4C273.9 535.9 286.2 553.2 297.6 563.8C308.8 574.3 316.5 576 320.5 576C324.5 576 332.2 574.3 343.4 563.8C354.8 553.2 367.1 535.8 378.5 511.4C398.8 467.9 413.1 408.5 416 344zM224.9 296L415.8 296C413 231.5 398.7 172.1 378.4 128.6C367 104.2 354.7 86.8 343.3 76.2C332.1 65.7 324.4 64 320.4 64C316.4 64 308.7 65.7 297.5 76.2C286.1 86.8 273.8 104.2 262.4 128.6C242.1 172.1 227.8 231.5 224.9 296zM176.9 296C180.4 210.4 202.5 130.9 234.8 78.7C142.7 111.3 74.9 195.2 65.5 296L176.9 296zM65.5 344C74.9 444.8 142.7 528.7 234.8 561.3C202.5 509.1 180.4 429.6 176.9 344L65.5 344zM463.9 344C460.4 429.6 438.3 509.1 406 561.3C498.1 528.6 565.9 444.8 575.3 344L463.9 344zM575.3 296C565.9 195.2 498.1 111.3 406 78.7C438.3 130.9 460.4 210.4 463.9 296L575.3 296z"/></svg>`
+    },
+    {
+        id: 'ngrok', name: 'Ngrok', desc: 'Túnel localhost',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor"><path d="M288.6 76.8C344.8 20.6 436 20.6 492.2 76.8C548.4 133 548.4 224.2 492.2 280.4L328.2 444.4C293.8 478.8 238.1 478.8 203.7 444.4C169.3 410 169.3 354.3 203.7 319.9L356.5 167.3C369 154.8 389.3 154.8 401.8 167.3C414.3 179.8 414.3 200.1 401.8 212.6L249 365.3C239.6 374.7 239.6 389.9 249 399.2C258.4 408.5 273.6 408.6 282.9 399.2L446.9 235.2C478.1 204 478.1 153.3 446.9 122.1C415.7 90.9 365 90.9 333.8 122.1L169.8 286.1C116.7 339.2 116.7 425.3 169.8 478.4C222.9 531.5 309 531.5 362.1 478.4L492.3 348.3C504.8 335.8 525.1 335.8 537.6 348.3C550.1 360.8 550.1 381.1 537.6 393.6L407.4 523.6C329.3 601.7 202.7 601.7 124.6 523.6C46.5 445.5 46.5 318.9 124.6 240.8L288.6 76.8z"/></svg>`
+    },
+];
 
-        function App() {
-            const [logs, setLogs] = useState([]);
-            const [loading, setLoading] = useState(false);
-            const [connected, setConnected] = useState(false);
-            const [clientsCount, setClientsCount] = useState(0);
-            const [hoveredApp, setHoveredApp] = useState(null);
-            const logEndRef = useRef(null);
+const BADGE = { success: 'OK', error: 'ERR', warning: 'AVS', info: 'INF' };
 
-            useEffect(() => {
-                checkConnection();
-                addLog('Sistema Axii iniciado!', 'success');
-                addLog('Conecte os clientes em cada PC para começar', 'info');
+function App() {
+    const [logs, setLogs] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [connected, setConnected] = useState(false);
+    const [clientsCount, setClientsCount] = useState(0);
+    const logEndRef = useRef(null);
 
-                // Atualizar contagem de clientes a cada 3 segundos
-                const interval = setInterval(updateClientsCount, 3000);
-                return () => clearInterval(interval);
-            }, []);
+    const addLog = (message, type = 'info') => {
+        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLogs(prev => [...prev, { time, message, type, id: Date.now() + Math.random() }]);
+    };
 
-            useEffect(() => {
-                logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, [logs]);
+    useEffect(() => {
+        checkConnection();
+        addLog('Sistema iniciado', 'info');
+        addLog('Aguardando clientes nos PCs', 'info');
+        const iv = setInterval(updateClients, 3000);
+        return () => clearInterval(iv);
+    }, []);
 
-            const checkConnection = async () => {
-                try {
-                    const response = await fetch('/status');
-                    const data = await response.json();
-                    setConnected(data.status === 'online');
-                    setClientsCount(data.clients);
-                } catch {
-                    setConnected(false);
-                    setClientsCount(0);
-                }
-            };
+    useEffect(() => {
+        logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [logs]);
 
-            const updateClientsCount = async () => {
-                try {
-                    const response = await fetch('/clients');
-                    const data = await response.json();
-                    setClientsCount(data.count);
-                } catch {
-                    setClientsCount(0);
-                }
-            };
+    const checkConnection = async () => {
+        try {
+            const r = await fetch('/status');
+            const d = await r.json();
+            setConnected(d.status === 'online');
+            setClientsCount(d.clients);
+        } catch { setConnected(false); setClientsCount(0); }
+    };
 
-            const getTime = () => {
-                return new Date().toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-            };
+    const updateClients = async () => {
+        try {
+            const r = await fetch('/clients');
+            const d = await r.json();
+            setClientsCount(d.count);
+        } catch { setClientsCount(0); }
+    };
 
-            const addLog = (message, type = 'info') => {
-                setLogs(prev => [...prev, { time: getTime(), message, type, id: Date.now() + Math.random() }]);
-            };
+    const execute = async (id, name) => {
+        if (!connected) { addLog('Servidor offline — inicie o servidor primeiro', 'error'); return; }
+        if (clientsCount === 0) { addLog('Nenhum PC conectado', 'warning'); return; }
 
-            const executeAction = async (action, appName, description) => {
-                if (!connected) {
-                    addLog('Servidor não está disponível!', 'error');
-                    addLog('Execute o servidor primeiro', 'warning');
-                    return;
-                }
+        setLoading(true);
+        addLog(`Enviando ${name} → ${clientsCount} PC(s)`, 'info');
 
-                if (clientsCount === 0) {
-                    addLog('Nenhum computador conectado!', 'warning');
-                    addLog('Execute os clientes nos PCs antes de enviar comandos', 'info');
-                    return;
-                }
-
-                setLoading(true);
-                addLog(`Enviando comando: ${appName} para ${clientsCount} PC(s)`, 'info');
-
-                try {
-                    const response = await fetch('/broadcast', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(action)
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        addLog(`${result.message}`, 'success');
-                        addLog(`Comando executado em todos os clientes!`, 'success');
-                    } else {
-                        addLog(`❌ ${result.message}`, 'error');
-                    }
-                } catch (error) {
-                    addLog(`❌ Erro ao executar: ${error.message}`, 'error');
-                }
-
-                setLoading(false);
-            };
-
-            const getLogIcon = (type) => {
-                switch(type) {
-                    case 'success': return '✓';
-                    case 'error': return '✗';
-                    case 'warning': return '⚠';
-                    default: return '●';
-                }
-            };
-
-            const getLogColor = (type) => {
-                switch(type) {
-                    case 'success': return 'text-emerald-400';
-                    case 'error': return 'text-red-400';
-                    case 'warning': return 'text-amber-400';
-                    default: return 'text-blue-400';
-                }
-            };
-
-            return (
-                <div className="w-full max-w-7xl mx-auto relative z-10 fade-in">
-                    {/* Header */}
-                    <div className="glass-effect rounded-3xl shadow-2xl mb-8 overflow-hidden">
-                        <div className="relative p-10 text-center overflow-hidden">
-                            <div className="relative z-10">
-                                <div className="w-24 h-24 mx-auto rounded-2xl flex items-center justify-center mb-6">
-                                    <img src="img/white-logo.svg" alt="Axii Logo" className="w-full h-full object-contain"/>
-                                </div>
-                                <h1 className="text-5xl font-black mb-3 text-white tracking-tight">
-                                    AXII DESKTOP
-                                </h1>
-                                <p className="text-blue-100 text-lg font-medium">
-                                    Controlador PC
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Status Bar */}
-                        <div className="px-8 py-6 bg-slate-900/50">
-                            <div className={`gradient-border p-5 rounded-xl transition-all duration-300 ${connected ? 'bg-emerald-950/30' : 'bg-red-950/30'}`}>
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-4 h-4 rounded-full ${connected ? 'bg-emerald-400' : 'bg-red-400'} pulse-anim shadow-lg`}></div>
-                                    <div className="flex-1">
-                                        <p className={`font-bold text-base ${connected ? 'text-emerald-400' : 'text-red-400'}`}>
-                                            {connected ? 'Servidor Online' : 'Servidor Offline'}
-                                        </p>
-                                        <p className="text-gray-400 text-sm mt-1">
-                                            {connected ? `${clientsCount} computador(es) conectado(s) e pronto(s)` : 'Aguardando conexão com o servidor'}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        {clientsCount > 0 && (
-                                            <div className="bg-blue-500/20 px-6 py-3 rounded-lg">
-                                                <span className="text-blue-400 text-2xl font-bold">{clientsCount}</span>
-                                                <span className="text-gray-400 text-sm ml-2">PC{clientsCount > 1 ? 's' : ''}</span>
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={() => window.location.href = '/monitor'}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3"
-                                        >
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                            </svg>
-                                            <div className="text-left">
-                                                <div className="text-sm font-bold">Monitoramento</div>
-                                                <div className="text-xs opacity-80">Performance dos PCs</div>
-                                            </div>
-                                        </button>
-                                        {loading && (
-                                            <div className="flex items-center gap-2 bg-purple-500/20 px-4 py-2 rounded-lg">
-                                                <div className="w-5 h-5 border-2 border-slate-600 border-t-purple-400 rounded-full spinner"></div>
-                                                <span className="text-purple-400 text-sm font-medium">Enviando...</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    {/* Grid de Aplicações */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                        {apps.map((app) => (
-                            <button
-                                key={app.id}
-                                onClick={() => executeAction(app.id, app.name, app.desc)}
-                                onMouseEnter={() => setHoveredApp(app.id)}
-                                onMouseLeave={() => setHoveredApp(null)}
-                                disabled={loading || !connected || clientsCount === 0}
-                                className={`app-card glass-effect rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${loading || !connected || clientsCount === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:-translate-y-1'}`}
-                            >
-                                <div className={`relative p-8 bg-gradient-to-br ${app.color} transition-all duration-300`}>
-                                    <div className={`w-20 h-20 mx-auto mb-4 text-white transition-transform duration-300`}
-                                        dangerouslySetInnerHTML={{ __html: app.icon }}>
-                                    </div>
-                                    <h3 className="text-white font-bold text-center text-base mb-1">{app.name}</h3>
-                                    <div className={`h-0 overflow-hidden transition-all duration-300 ${hoveredApp === app.id ? 'h-auto mt-2' : ''}`}>
-                                        <p className="text-white/80 text-xs text-center">{app.desc}</p>
-                                    </div>
-                                </div>
-                                <div className="p-4 bg-slate-900/60">
-                                    <div className="flex items-center justify-center gap-2 text-gray-300 text-xs">
-                                        <span className="w-2 h-2 bg-blue-400 rounded-full pulse-anim"></span>
-                                        <span>Executar em TODOS</span>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Log Section */}
-                    <div className="glass-effect rounded-3xl shadow-2xl overflow-hidden">
-                        <div className="p-8">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h2 className="text-white font-bold text-xl">Log de Execução</h2>
-                                        <p className="text-gray-400 text-sm">Acompanhe os comandos em tempo real</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-2 rounded-lg">
-                                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                    <span className="text-gray-300 text-sm">{logs.length} eventos</span>
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-950/80 rounded-2xl p-6 h-80 overflow-y-auto log-scroll font-mono text-sm border border-slate-800">
-                                {logs.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                                        <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <p className="text-center font-bold">Nenhum evento registrado</p>
-                                        <p className="text-xs mt-2">Clique em um aplicativo para começar</p>
-                                    </div>
-                                ) : (
-                                    logs.map((log) => (
-                                        <div key={log.id} className="mb-3 slide-in flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                                            <span className="text-gray-500 text-xs flex-shrink-0 font-bold">[{log.time}]</span>
-                                            <span className={`${getLogColor(log.type)} flex-shrink-0 font-bold text-base`}>{getLogIcon(log.type)}</span>
-                                            <span className="text-gray-200 flex-1 leading-relaxed">{log.message}</span>
-                                        </div>
-                                    ))
-                                )}
-                                <div ref={logEndRef} />
-                            </div>
-                        </div>
-
-                        {/* Footer Actions */}
-                        <div className="p-8 bg-slate-950/50 border-t border-slate-800">
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={() => {
-                                        setLogs([]);
-                                        addLog('🧹 Logs limpos com sucesso!', 'info');
-                                    }}
-                                    className="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Limpar Logs
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        checkConnection();
-                                        updateClientsCount();
-                                        addLog('Status atualizado', 'info');
-                                    }}
-                                    className="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Atualizar Status
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer Info */}
-                    <div className="mt-8 text-center text-gray-400 text-sm">
-                        <p>Axii Desktop © 2025 | {clientsCount} computador(es) online</p>
-                    </div>
-                </div>
-                </div>
-            );
+        try {
+            const r = await fetch('/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            });
+            const result = await r.json();
+            if (result.success) {
+                addLog(result.message, 'success');
+            } else {
+                addLog(result.message, 'error');
+            }
+        } catch (e) {
+            addLog(`Falha na requisição: ${e.message}`, 'error');
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
-    </script>
+        setLoading(false);
+    };
+
+    const refresh = () => {
+        checkConnection();
+        updateClients();
+        addLog('Status atualizado', 'info');
+    };
+
+    const clearLogs = () => {
+        setLogs([]);
+    };
+
+    const disabled = loading || !connected || clientsCount === 0;
+
+    return (
+        <div>
+            {/* Header */}
+            <div className="header">
+                <div className="header-left">
+                    <div className="logo-mark">
+                        <img src="https://lfcostldktmoevensqdj.supabase.co/storage/v1/object/public/axii/white-logo.svg" alt="Axii" />
+                    </div>
+                    <div className="logo-text">
+                        <h1>Axii Desktop</h1>
+                        <p>Controlador de laboratório</p>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div className={`status-pill ${connected ? 'online' : 'offline'}`}>
+                        <span className="status-dot"></span>
+                        <span className="status-label">{connected ? 'Online' : 'Offline'}</span>
+                    </div>
+
+                    {loading && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--accent)', fontFamily: 'var(--mono)' }}>
+                            <div className="spinner"></div>
+                            <span>Enviando...</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Meta */}
+            <div className="meta-bar">
+                <div className="meta-stat">
+                    <span className="num">{clientsCount}</span>
+                    <span className="label">PC{clientsCount !== 1 ? 's' : ''} conectado{clientsCount !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="meta-divider"></div>
+                <div className="meta-stat">
+                    <span className="num">{logs.length}</span>
+                    <span className="label">eventos no log</span>
+                </div>
+            </div>
+
+            {/* Apps */}
+            <div className="section-label">Aplicativos</div>
+            <div className="app-grid">
+                {apps.map(app => (
+                    <button
+                        key={app.id}
+                        className="app-btn"
+                        onClick={() => execute(app.id, app.name)}
+                        disabled={disabled}
+                        title={app.desc}
+                    >
+                        <div
+                            className="app-icon"
+                            dangerouslySetInnerHTML={{ __html: app.icon }}
+                        />
+                        <div className="app-info">
+                            <span className="app-name">{app.name}</span>
+                            <span className="app-desc">{app.desc}</span>
+                        </div>
+                        <div className="app-action">broadcast</div>
+                    </button>
+                ))}
+            </div>
+
+            {/* Log */}
+            <div className="section-label">Log de execução</div>
+            <div className="log-section">
+                <div className="log-header">
+                    <span className="log-title">Saída do sistema</span>
+                    <span className="log-count">{logs.length} entradas</span>
+                </div>
+
+                <div className="log-body">
+                    {logs.length === 0 ? (
+                        <div className="log-empty">
+                            <span>Nenhum evento registrado</span>
+                            <span className="log-empty-sub">Selecione um aplicativo para começar</span>
+                        </div>
+                    ) : (
+                        logs.map(log => (
+                            <div key={log.id} className="log-entry">
+                                <span className="log-time">{log.time}</span>
+                                <span className={`log-badge ${log.type}`}>{BADGE[log.type]}</span>
+                                <span className="log-msg">{log.message}</span>
+                            </div>
+                        ))
+                    )}
+                    <div ref={logEndRef} />
+                </div>
+
+                <div className="log-footer">
+                    <button className="log-action-btn" onClick={clearLogs}>Limpar log</button>
+                    <button className="log-action-btn" onClick={refresh}>Atualizar status</button>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="page-footer">
+                <span className="footer-note">Axii © 2025 — ETEC de Mauá</span>
+                <span className="footer-version">v1.0.0</span>
+            </div>
+        </div>
+    );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
 </body>
 </html>
